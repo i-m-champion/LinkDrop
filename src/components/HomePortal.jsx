@@ -18,7 +18,7 @@ import SpotlightCard from './kinetic/SpotlightCard.jsx';
 
 gsap.registerPlugin(useGSAP);
 
-export default function HomePortal({ onSelectPlatform, onQuickLaunchUrl, capabilities }) {
+export default function HomePortal({ onSelectPlatform, onQuickLaunchUrl }) {
   const rootRef = useRef(null);
   const [quickUrl, setQuickUrl] = useState('');
 
@@ -29,16 +29,10 @@ export default function HomePortal({ onSelectPlatform, onQuickLaunchUrl, capabil
 
       const tl = gsap.timeline({ defaults: { ease: 'power3.out', clearProps: 'transform' } });
       tl.fromTo(
-        '.hero-badge',
-        { y: 12 },
-        { y: 0, duration: 0.45 }
+        '.hero-line',
+        { yPercent: 105 },
+        { yPercent: 0, duration: 0.72, stagger: 0.09 }
       )
-        .fromTo(
-          '.hero-line',
-          { yPercent: 105 },
-          { yPercent: 0, duration: 0.72, stagger: 0.09 },
-          '-=0.25'
-        )
         .fromTo(
           '.hero-search',
           { y: 16, scale: 0.98 },
@@ -88,8 +82,6 @@ export default function HomePortal({ onSelectPlatform, onQuickLaunchUrl, capabil
   );
   const universal = PLATFORM_MAP.universal;
 
-  const engineReady = capabilities?.ytDlpAvailable && capabilities?.ffmpegAvailable;
-
   return (
     <div ref={rootRef} className="relative z-10 mx-auto max-w-7xl px-4 pb-24 pt-10 sm:px-6 lg:px-8">
       {/* Ambient Floating Pastel Light Orbs */}
@@ -99,18 +91,6 @@ export default function HomePortal({ onSelectPlatform, onQuickLaunchUrl, capabil
 
       {/* Centered Clean Light Editorial Hero */}
       <section className="mx-auto max-w-3xl text-center">
-        <div className="hero-badge mb-5 inline-flex items-center gap-2 rounded-full border border-slate-200/90 bg-white/90 px-4 py-1.5 text-xs font-medium text-slate-700 shadow-sm backdrop-blur-md">
-          <span className="relative flex h-2 w-2">
-            <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75" />
-            <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-500" />
-          </span>
-          <span className="font-mono text-[11px] tracking-wide">
-            {engineReady
-              ? `yt-dlp ${capabilities.ytDlpVersion} + FFmpeg ${capabilities.ffmpegVersion} Ready`
-              : 'High-Speed Video & Audio Batch Engine'}
-          </span>
-        </div>
-
         <h1 className="font-display text-4xl font-bold leading-[1.08] tracking-tight text-slate-900 sm:text-5xl lg:text-[3.8rem]">
           <span className="block overflow-hidden">
             <span className="hero-line block">Drop Any Link, Download</span>

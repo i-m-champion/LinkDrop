@@ -5,20 +5,15 @@ import {
   Zap,
   ShieldCheck,
   History,
-  Cpu,
 } from 'lucide-react';
 
 export default function Header({
   onSelectPlatform,
-  concurrency,
   hasSession,
   historyCount,
-  capabilities,
   onOpenHistory,
   onOpenSettings,
 }) {
-  const engineReady = capabilities?.ytDlpAvailable && capabilities?.ffmpegAvailable;
-
   return (
     <header className="sticky top-0 z-40 border-b border-slate-200/80 bg-[#faf9f6]/80 backdrop-blur-2xl">
       <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-4 py-3 sm:px-6 lg:px-8">
@@ -44,20 +39,6 @@ export default function Header({
 
         {/* Minimal Light-Mode Controls */}
         <div className="flex items-center gap-2">
-          <div
-            title={
-              engineReady
-                ? `yt-dlp ${capabilities.ytDlpVersion} + ffmpeg ${capabilities.ffmpegVersion}`
-                : 'Parallel Extraction Engine'
-            }
-            className="hidden items-center gap-2 rounded-full border border-slate-200 bg-white/90 px-3 py-1.5 text-xs text-slate-700 shadow-sm md:flex"
-          >
-            <Cpu className={`h-3.5 w-3.5 ${engineReady ? 'text-emerald-500' : 'text-amber-500'}`} />
-            <span className="font-mono text-[11px] font-medium">
-              {engineReady ? 'Engine Online' : 'Fast Mode'} • {concurrency}x
-            </span>
-          </div>
-
           <button
             type="button"
             onClick={onOpenHistory}
