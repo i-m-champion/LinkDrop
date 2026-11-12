@@ -1,7 +1,12 @@
 <div align="center">
 
-<!-- Hero Banner -->
-<img src="https://capsule-render.vercel.app/api?type=waving&color=0:ff5e2b,50:ec4899,100:8b5cf6&height=215&section=header&text=LinkDrop&fontSize=64&fontColor=ffffff&fontAlignY=38&desc=Drop%20Any%20Link%2C%20Download%20At%20Maximum%20Wire%20Speed&descSize=18&descAlignY=62&animation=fadeIn" alt="LinkDrop Banner" width="100%" />
+<!-- Animated Wave Hero Banner -->
+<img src="https://capsule-render.vercel.app/api?type=waving&color=0:ff5e2b,50:ec4899,100:8b5cf6&height=220&section=header&text=LinkDrop&fontSize=68&fontColor=ffffff&fontAlignY=38&desc=Drop%20Any%20Link%2C%20Download%20At%20Maximum%20Wire%20Speed&descSize=18&descAlignY=62&animation=fadeIn" alt="LinkDrop Banner" width="100%" />
+
+<!-- Animated Typing Tagline -->
+<p align="center">
+  <img src="https://readme-typing-svg.demolab.com?font=Space+Grotesk&weight=600&size=19&duration=2600&pause=900&color=FF5E2B&center=true&vCenter=true&width=720&lines=Dedicated+Download+Workspaces+for+YouTube%2C+Instagram%2C+X%2C+TikTok+%26+Reddit;Parallel+Batch+Extraction+%2B+Zero-Disk+Folder-Grouped+ZIP+Streaming;4K+%2F+1080p+FFmpeg+Muxing+%2B+320kbps+MP3%2FFLAC+Audio+%2B+.SRT+Subtitles" alt="LinkDrop Highlights" />
+</p>
 
 <p align="center">
   <a href="https://nodejs.org/"><img src="https://img.shields.io/badge/Node.js-18%2B-339933?style=for-the-badge&logo=nodedotjs&logoColor=white" alt="Node.js" /></a>
@@ -9,13 +14,11 @@
   <a href="https://tailwindcss.com/"><img src="https://img.shields.io/badge/Tailwind_CSS-3.4-06B6D4?style=for-the-badge&logo=tailwindcss&logoColor=white" alt="Tailwind CSS" /></a>
   <a href="https://github.com/yt-dlp/yt-dlp"><img src="https://img.shields.io/badge/yt--dlp-Powered-ef4444?style=for-the-badge&logo=youtube&logoColor=white" alt="yt-dlp" /></a>
   <a href="https://ffmpeg.org/"><img src="https://img.shields.io/badge/FFmpeg-Muxing-007808?style=for-the-badge&logo=ffmpeg&logoColor=white" alt="FFmpeg" /></a>
+  <img src="https://img.shields.io/badge/License-MIT-8b5cf6?style=for-the-badge" alt="License MIT" />
 </p>
 
 <p align="center">
-  <strong>Dedicated downloader workspaces for YouTube, Instagram, X, TikTok, Facebook, Reddit &amp; 1,000+ sites. Extract streams in parallel, convert to 4K MP4 or 320kbps MP3/FLAC, trim exact clips, grab subtitles, and bundle into folder-organized ZIPs.</strong>
-</p>
-
-<p align="center">
+  <a href="#-screenshots">Screenshots</a> •
   <a href="#-supported-platforms">Platforms</a> •
   <a href="#-key-features">Features</a> •
   <a href="#-architecture">Architecture</a> •
@@ -27,14 +30,45 @@
 
 ---
 
+## 📸 Screenshots
+
+<div align="center">
+  <p><strong>Home Portal — Quick Auto-Route Bar &amp; 7 Dedicated Platform Downloaders</strong></p>
+  <img src="docs/screenshots/home.png" alt="LinkDrop Home Portal" width="100%" />
+</div>
+
+<br />
+
+<table>
+  <tr>
+    <td width="50%" align="center">
+      <strong>YouTube Downloader Studio</strong><br />
+      <sub>4K/1080p Muxing • Playlist Batch Expander • .SRT Captions</sub>
+      <br /><br />
+      <img src="docs/screenshots/youtube.png" alt="LinkDrop YouTube Studio" width="100%" />
+    </td>
+    <td width="50%" align="center">
+      <strong>Instagram Downloader Studio</strong><br />
+      <sub>~500ms SSR Extraction • 9:16 Vertical Cards • Session Cookie Auth</sub>
+      <br /><br />
+      <img src="docs/screenshots/instagram.png" alt="LinkDrop Instagram Studio" width="100%" />
+    </td>
+  </tr>
+</table>
+
+---
+
 ## 🌐 Supported Platforms
 
-| Platform | Capabilities |
+| Platform | Dedicated Studio Highlights |
 | :--- | :--- |
-| **YouTube** | Videos, Shorts, Music, **4K/1440p/1080p Muxed MP4**, **Playlist Expander**, `.srt` Subtitles |
-| **Instagram** | Reels, Posts, Carousels via **Ultra-Fast SSR Engine** (~0.5s) + optional `sessionid` unlock |
-| **TikTok / X / Facebook** | Watermark-free HD MP4s, audio extraction, batch ZIP bundling |
-| **Reddit / Vimeo / Twitch / 1,000+ Sites** | Automatic resolution detection, audio conversion, clipping & cover download |
+| **YouTube** | Videos, Shorts &amp; Music • **4K / 1440p / 1080p Muxed MP4** • **Playlist Batch Expander** • `.srt` Subtitles |
+| **Instagram** | Reels, Posts &amp; Carousels via **Fast SSR Engine (~500ms)** • 9:16 Vertical Previews • Optional `sessionid` unlock |
+| **X / Twitter** | Native HD Video &amp; GIF Tweets • Clip Trimming • Batch ZIP Archiving |
+| **TikTok** | Watermark-Free HD MP4s • 1-Click Sound Rip (MP3 / FLAC) • 9:16 Cards |
+| **Facebook** | Watch Videos, FB Reels &amp; `fb.watch` shortlinks • Multi-Quality Picker |
+| **Reddit** | Auto Audio + Video `v.redd.it` FFmpeg Muxing (zero silent clips) |
+| **Universal Mix** | Vimeo, Twitch, Pinterest &amp; **1,000+ sites** combined in one queue with folder-grouped ZIP export |
 
 ---
 
@@ -44,31 +78,31 @@
   <tr>
     <td width="50%">
       <h3>🎯 Dedicated Per-Platform Studios</h3>
-      <p>Choose your platform right from the animated LinkDrop Home Portal—each workspace adapts its aspect ratio, presets, hints, and theme for YouTube, Instagram, X, TikTok, Facebook, Reddit, or Mixed Batch.</p>
+      <p>Launch straight into a tailored downloader workspace from the Home Portal or paste any link into the Quick-Launch bar to auto-detect and jump to the matching studio.</p>
     </td>
     <td width="50%">
-      <h3>🎬 4K Muxing &amp; Audio Rip</h3>
-      <p>Choose per-item or batch-wide output: <strong>MP4 (4K / 1440p / 1080p / 720p)</strong> muxed cleanly via <code>ffmpeg</code>, or extract <strong>MP3 (320k), M4A, FLAC, WAV</strong> with embedded cover art.</p>
-    </td>
-  </tr>
-  <tr>
-    <td width="50%">
-      <h3>✂️ Clip Trimmer, Subtitles &amp; Covers</h3>
-      <p>Preview in HD inside the Studio Modal, trim exact <code>Start → End</code> timestamp segments, download <code>.srt</code> captions, and save full-resolution thumbnails.</p>
-    </td>
-    <td width="50%">
-      <h3>📂 Folder-Grouped Store-Mode ZIP</h3>
-      <p>Bundle dozens of videos &amp; audio tracks into one archive organized into platform folders (<code>YouTube/</code>, <code>Instagram/</code>, <code>TikTok/</code>) at wire speed.</p>
+      <h3>⚡ Bounded Parallel Concurrency</h3>
+      <p>Extract 1 to 100+ links concurrently using <code>Safe (2x)</code>, <code>Balanced (5x)</code>, or <code>Turbo (8x)</code> speed presets with live Server-Sent Events (SSE) status updates.</p>
     </td>
   </tr>
   <tr>
     <td width="50%">
-      <h3>📜 Playlist Expander</h3>
-      <p>Drop any YouTube Playlist link and click <strong>Expand Playlist</strong> to populate up to 30+ videos directly into your batch studio queue.</p>
+      <h3>🎬 4K Video Muxing &amp; Lossless Audio</h3>
+      <p>Download progressive HD or FFmpeg-muxed <strong>4K / 1440p / 1080p MP4</strong>, or convert directly to <strong>320kbps MP3, M4A, FLAC, or WAV</strong> with metadata.</p>
     </td>
     <td width="50%">
-      <h3>⚡ Animated Light UI + History Drawer</h3>
-      <p>Airy, animated light-mode studio with custom morphing pointer interactions, Grid &amp; Table views, and instant re-queueing from Download History.</p>
+      <h3>✂️ Clip Trimmer, .SRT Captions &amp; Covers</h3>
+      <p>Preview streams inside the Studio Modal, trim exact <code>Start → End</code> timestamp slices before saving, download <code>.srt</code> subtitles, and grab full-res thumbnails.</p>
+    </td>
+  </tr>
+  <tr>
+    <td width="50%">
+      <h3>📂 Zero-Disk Folder-Grouped ZIP</h3>
+      <p>Bundle dozens of videos &amp; audio tracks into a single Store-mode ZIP streamed directly to your browser, neatly organized into <code>YouTube/</code>, <code>Instagram/</code>, and <code>TikTok/</code> folders.</p>
+    </td>
+    <td width="50%">
+      <h3>📜 Playlist Expander &amp; History Drawer</h3>
+      <p>Expand full YouTube playlists straight into your batch queue, switch between Grid &amp; Table views, and re-queue past saves from Download History.</p>
     </td>
   </tr>
 </table>
@@ -86,7 +120,7 @@ flowchart LR
     D -->|YouTube & 1000+ Sites| E2["yt-dlp Metadata & Format Resolver"]
     E1 --> F["20m In-Memory TTL Cache"]
     E2 --> F
-    F --> G["React Workspace (Grid / Table / Modal)"]
+    F --> G["React Studio (Grid / Table / Modal)"]
     G --> H["GET /api/prepare/:id (SSE Progress)"]
     H --> I["FFmpeg Mux / Trim / MP3-FLAC-WAV"]
     G --> J["POST /api/download-zip (Folder-Grouped ZIP)"]
@@ -98,7 +132,7 @@ flowchart LR
 
 ### Prerequisites
 - **Node.js 18+**
-- **yt-dlp** & **ffmpeg** (installed on macOS via `brew install yt-dlp ffmpeg`, or use the included `Dockerfile`)
+- **yt-dlp** & **ffmpeg** (`brew install yt-dlp ffmpeg` on macOS, or use the included `Dockerfile`)
 
 ### 1. Clone & Install
 
@@ -108,7 +142,7 @@ cd LinkDrop
 npm install
 ```
 
-### 2. Run in Development Mode
+### 2. Development Mode
 
 ```bash
 npm run dev
@@ -117,14 +151,14 @@ npm run dev
 - Frontend (Vite): **[http://localhost:5173](http://localhost:5173)**
 - Backend API: **[http://localhost:3001](http://localhost:3001)**
 
-### 3. Build & Run in Production
+### 3. Production Build & Serve
 
 ```bash
 npm run build
 npm start
 ```
 
-Everything runs on **[http://localhost:3001](http://localhost:3001)**.
+Everything runs cleanly on **[http://localhost:3001](http://localhost:3001)**.
 
 ### 4. Deploy Anywhere with Docker
 
@@ -146,13 +180,13 @@ npm test
 | Method | Endpoint | Description |
 | :--- | :--- | :--- |
 | `GET` | `/api/health` | Service health + live `yt-dlp` / `ffmpeg` capability flags |
-| `POST` | `/api/parse` | Parses & deduplicates mixed-platform URLs + playlist flags |
+| `POST` | `/api/parse` | Parses &amp; deduplicates mixed-platform URLs + playlist flags |
 | `POST` | `/api/playlist/expand` | Expands a YouTube playlist URL into queue items |
 | `POST` | `/api/extract/batch` | **SSE stream** extracting mixed URLs concurrently |
 | `GET` | `/api/thumb/:id` | Proxies thumbnail (`?download=1` saves full-res `.jpg`) |
 | `GET` | `/api/subtitles/:id` | Extracts `.srt` subtitles (`?lang=en`) |
-| `GET` | `/api/stream/:id` | HTTP `Range` streaming proxy for instant HD preview & direct saves |
-| `GET` | `/api/prepare/:id` | **SSE progress** for HD muxing, MP3/M4A/FLAC/WAV conversion & clipping |
+| `GET` | `/api/stream/:id` | HTTP `Range` streaming proxy for instant HD preview &amp; direct saves |
+| `GET` | `/api/prepare/:id` | **SSE progress** for HD muxing, MP3/M4A/FLAC/WAV conversion &amp; clipping |
 | `GET` | `/api/file/:token` | One-time download endpoint with automatic temp cleanup |
 | `POST` | `/api/download-zip` | Concurrent mixed-format ZIP bundler with optional platform folders |
 
@@ -160,9 +194,10 @@ npm test
 
 ## ⚠️ Disclaimer
 
-This tool is designed for personal archiving, offline viewing, and downloading content you own or have permission to save. Please respect creators' copyrights and platform Terms of Service.
+This tool is built for personal archiving, offline viewing, and downloading media you own or have permission to save. Please respect creators' copyrights and platform Terms of Service.
 
 <div align="center">
   <br />
+  <img src="https://capsule-render.vercel.app/api?type=waving&color=0:ff5e2b,50:ec4899,100:8b5cf6&height=90&section=footer" alt="Footer Wave" width="100%" />
   <sub>Built with ⚡ by <a href="https://github.com/i-m-champion">i-m-champion</a></sub>
 </div>
