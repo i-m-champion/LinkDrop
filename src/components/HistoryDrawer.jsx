@@ -13,11 +13,11 @@ export default function HistoryDrawer({
 
   return (
     <div
-      className="fixed inset-0 z-50 flex justify-end bg-black/60 backdrop-blur-sm"
+      className="fixed inset-0 z-50 flex justify-end bg-slate-900/35 backdrop-blur-sm"
       onClick={onClose}
     >
       <aside
-        className="glass-panel flex h-full w-full max-w-md flex-col border-l border-white/15 p-5 shadow-2xl"
+        className="glass-panel flex h-full w-full max-w-md flex-col border-l border-slate-200/90 p-5 shadow-2xl"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex items-center justify-between border-b border-slate-200 pb-4 dark:border-white/[0.08]">

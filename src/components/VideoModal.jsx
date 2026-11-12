@@ -112,11 +112,11 @@ export default function VideoModal({
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4 backdrop-blur-md"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 p-4 backdrop-blur-md"
       onClick={onClose}
     >
       <div
-        className="glass-panel relative grid max-h-[90vh] w-full max-w-5xl grid-cols-1 overflow-hidden rounded-3xl border border-white/15 md:grid-cols-[1.15fr_1fr]"
+        className="glass-panel relative grid max-h-[90vh] w-full max-w-5xl grid-cols-1 overflow-hidden rounded-3xl border border-slate-200/90 md:grid-cols-[1.15fr_1fr]"
         onClick={(e) => e.stopPropagation()}
       >
         <button

@@ -41,7 +41,6 @@ export default function KineticCursor() {
     let activeLabel = '';
 
     const setCursorState = (text, isInteractive) => {
-      const isDark = document.documentElement.classList.contains('dark');
       if (text) {
         if (activeLabel !== text) {
           labelEl.textContent = text;
@@ -52,7 +51,7 @@ export default function KineticCursor() {
           height: 34,
           borderRadius: 999,
           backgroundColor: 'rgba(255, 94, 43, 0.94)',
-          borderColor: 'rgba(255, 255, 255, 0.5)',
+          borderColor: 'rgba(255, 255, 255, 0.65)',
           duration: 0.24,
           ease: 'power3.out',
         });
@@ -64,7 +63,7 @@ export default function KineticCursor() {
           width: 46,
           height: 46,
           borderRadius: 999,
-          backgroundColor: isDark ? 'rgba(255, 255, 255, 0.08)' : 'rgba(15, 23, 42, 0.06)',
+          backgroundColor: 'rgba(255, 94, 43, 0.08)',
           borderColor: 'rgba(255, 94, 43, 0.85)',
           duration: 0.22,
           ease: 'power3.out',
@@ -78,7 +77,7 @@ export default function KineticCursor() {
           height: 34,
           borderRadius: 999,
           backgroundColor: 'transparent',
-          borderColor: isDark ? 'rgba(244, 241, 234, 0.45)' : 'rgba(15, 23, 42, 0.38)',
+          borderColor: 'rgba(15, 23, 42, 0.38)',
           duration: 0.22,
           ease: 'power3.out',
         });

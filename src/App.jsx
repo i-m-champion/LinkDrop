@@ -51,14 +51,13 @@ export default function App() {
   const [activePlatform, setActivePlatform] = useState(() => getPlatformFromHash());
   const [inputsByPlatform, setInputsByPlatform] = useState({});
 
-  const [theme, setTheme] = useLocalStorage('reeljet:theme', 'dark');
-  const [concurrency, setConcurrency] = useLocalStorage('reeljet:concurrency', 5);
-  const [filenameTemplate, setFilenameTemplate] = useLocalStorage('reeljet:template', 'title_id');
-  const [defaultPresetId, setDefaultPresetId] = useLocalStorage('reeljet:preset', 'mp4_best');
-  const [groupByPlatform, setGroupByPlatform] = useLocalStorage('reeljet:groupPlatform', true);
-  const [viewMode, setViewMode] = useLocalStorage('reeljet:viewMode', 'grid');
-  const [sessionId, setSessionId] = useLocalStorage('reeljet:sessionid', '');
-  const [history, setHistory] = useLocalStorage('reeljet:history', []);
+  const [concurrency, setConcurrency] = useLocalStorage('linkdrop:concurrency', 5);
+  const [filenameTemplate, setFilenameTemplate] = useLocalStorage('linkdrop:template', 'title_id');
+  const [defaultPresetId, setDefaultPresetId] = useLocalStorage('linkdrop:preset', 'mp4_best');
+  const [groupByPlatform, setGroupByPlatform] = useLocalStorage('linkdrop:groupPlatform', true);
+  const [viewMode, setViewMode] = useLocalStorage('linkdrop:viewMode', 'grid');
+  const [sessionId, setSessionId] = useLocalStorage('linkdrop:sessionid', '');
+  const [history, setHistory] = useLocalStorage('linkdrop:history', []);
 
   const [capabilities, setCapabilities] = useState(null);
   const [queue, setQueue] = useState([]);
@@ -97,13 +96,6 @@ export default function App() {
     setActivePlatform(platformId && PLATFORM_MAP[platformId] ? platformId : null);
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }, []);
-
-  // Sync dark/light class
-  useEffect(() => {
-    const root = document.documentElement;
-    if (theme === 'dark') root.classList.add('dark');
-    else root.classList.remove('dark');
-  }, [theme]);
 
   // Fetch capabilities
   useEffect(() => {
@@ -407,7 +399,7 @@ export default function App() {
       const stamp = new Date().toISOString().slice(0, 10);
       const a = document.createElement('a');
       a.href = blobUrl;
-      a.download = `streamvault-${selectedItems.length}-files-${stamp}.zip`;
+      a.download = `linkdrop-${selectedItems.length}-files-${stamp}.zip`;
       document.body.appendChild(a);
       a.click();
       a.remove();
@@ -465,19 +457,18 @@ export default function App() {
   const shaderAccentB = currentPlatformConfig?.shaderB || '#8b5cf6';
 
   return (
-    <div className="relative min-h-screen bg-[#f6f5f1] text-slate-900 dark:bg-[#07070b] dark:text-[#f6f5f1]">
+    <div className="relative min-h-screen bg-[#faf9f6] text-slate-900">
       {/* Custom 60-120fps Morphing Cursor (Desktop Only) */}
       <KineticCursor />
 
-      {/* 60fps Three.js GLSL FBM Plasma Canvas */}
+      {/* 60fps Three.js GLSL Luminous Light Plasma Canvas */}
       <HeroShaderCanvas
         accentA={shaderAccentA}
         accentB={shaderAccentB}
-        isDark={theme === 'dark'}
       />
 
       {/* Architectural Hairline Grid Overlay */}
-      <div className="bg-studio-grid pointer-events-none fixed inset-0 z-0 opacity-50" />
+      <div className="bg-studio-grid pointer-events-none fixed inset-0 z-0 opacity-60" />
 
       <div className="relative z-10">
         <Header
@@ -485,9 +476,7 @@ export default function App() {
           concurrency={concurrency}
           hasSession={Boolean(sessionId?.trim())}
           historyCount={history.length}
-          theme={theme}
           capabilities={capabilities}
-          onToggleTheme={() => setTheme((t) => (t === 'dark' ? 'light' : 'dark'))}
           onOpenHistory={() => setHistoryOpen(true)}
           onOpenSettings={() => setSettingsOpen(true)}
         />

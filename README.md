@@ -1,7 +1,7 @@
 <div align="center">
 
 <!-- Hero Banner -->
-<img src="https://capsule-render.vercel.app/api?type=waving&color=0:ff5e2b,50:ec4899,100:8b5cf6&height=215&section=header&text=StreamVault&fontSize=62&fontColor=ffffff&fontAlignY=38&desc=Universal%20High-Speed%20Video%20%26%20Audio%20Batch%20Downloader&descSize=18&descAlignY=62&animation=fadeIn" alt="StreamVault Banner" width="100%" />
+<img src="https://capsule-render.vercel.app/api?type=waving&color=0:ff5e2b,50:ec4899,100:8b5cf6&height=215&section=header&text=LinkDrop&fontSize=64&fontColor=ffffff&fontAlignY=38&desc=Drop%20Any%20Link%2C%20Download%20At%20Maximum%20Wire%20Speed&descSize=18&descAlignY=62&animation=fadeIn" alt="LinkDrop Banner" width="100%" />
 
 <p align="center">
   <a href="https://nodejs.org/"><img src="https://img.shields.io/badge/Node.js-18%2B-339933?style=for-the-badge&logo=nodedotjs&logoColor=white" alt="Node.js" /></a>
@@ -12,7 +12,7 @@
 </p>
 
 <p align="center">
-  <strong>Paste mixed links from YouTube, Instagram, TikTok, X, Reddit &amp; 1,000+ sites. Extract streams in parallel, convert to HD MP4 or lossless audio, trim exact clips, grab subtitles, and bundle everything into a folder-organized ZIP.</strong>
+  <strong>Dedicated downloader workspaces for YouTube, Instagram, X, TikTok, Facebook, Reddit &amp; 1,000+ sites. Extract streams in parallel, convert to 4K MP4 or 320kbps MP3/FLAC, trim exact clips, grab subtitles, and bundle into folder-organized ZIPs.</strong>
 </p>
 
 <p align="center">
@@ -43,11 +43,11 @@
 <table>
   <tr>
     <td width="50%">
-      <h3>⚡ Mixed-Platform Parallel Batching</h3>
-      <p>Paste 1 to 100 links from different platforms in one box. Color-coded detection pills, bounded worker concurrency (<code>2x Safe</code>, <code>5x Balanced</code>, <code>8x Turbo</code>), and live SSE progress.</p>
+      <h3>🎯 Dedicated Per-Platform Studios</h3>
+      <p>Choose your platform right from the animated LinkDrop Home Portal—each workspace adapts its aspect ratio, presets, hints, and theme for YouTube, Instagram, X, TikTok, Facebook, Reddit, or Mixed Batch.</p>
     </td>
     <td width="50%">
-      <h3>🎬 4K Muxing &amp; Audio Studio</h3>
+      <h3>🎬 4K Muxing &amp; Audio Rip</h3>
       <p>Choose per-item or batch-wide output: <strong>MP4 (4K / 1440p / 1080p / 720p)</strong> muxed cleanly via <code>ffmpeg</code>, or extract <strong>MP3 (320k), M4A, FLAC, WAV</strong> with embedded cover art.</p>
     </td>
   </tr>
@@ -67,8 +67,8 @@
       <p>Drop any YouTube Playlist link and click <strong>Expand Playlist</strong> to populate up to 30+ videos directly into your batch studio queue.</p>
     </td>
     <td width="50%">
-      <h3>🌓 Dark/Light Studio + Table View + History</h3>
-      <p>Switch between a visual Card Grid and a high-density Compact Table View, toggle Dark/Light mode, and re-queue past downloads from the History Drawer.</p>
+      <h3>⚡ Animated Light UI + History Drawer</h3>
+      <p>Airy, animated light-mode studio with custom morphing pointer interactions, Grid &amp; Table views, and instant re-queueing from Download History.</p>
     </td>
   </tr>
 </table>
@@ -79,14 +79,14 @@
 
 ```mermaid
 flowchart LR
-    A["Mixed URLs / Playlists"] --> B["Multi-Platform Parser & Detector"]
+    A["Platform Portals / Mixed URLs"] --> B["Multi-Platform Parser & Detector"]
     B --> C["POST /api/extract/batch (SSE)"]
     C --> D{"Platform Router"}
     D -->|Instagram| E1["Fast SSR data-sjs Parser (~0.5s)"]
     D -->|YouTube & 1000+ Sites| E2["yt-dlp Metadata & Format Resolver"]
     E1 --> F["20m In-Memory TTL Cache"]
     E2 --> F
-    F --> G["React Studio (Grid / Table / Modal)"]
+    F --> G["React Workspace (Grid / Table / Modal)"]
     G --> H["GET /api/prepare/:id (SSE Progress)"]
     H --> I["FFmpeg Mux / Trim / MP3-FLAC-WAV"]
     G --> J["POST /api/download-zip (Folder-Grouped ZIP)"]
@@ -103,8 +103,8 @@ flowchart LR
 ### 1. Clone & Install
 
 ```bash
-git clone https://github.com/i-m-champion/Insta-downloader.git
-cd Insta-downloader
+git clone https://github.com/i-m-champion/LinkDrop.git
+cd LinkDrop
 npm install
 ```
 
@@ -129,8 +129,8 @@ Everything runs on **[http://localhost:3001](http://localhost:3001)**.
 ### 4. Deploy Anywhere with Docker
 
 ```bash
-docker build -t streamvault .
-docker run -p 3001:3001 streamvault
+docker build -t linkdrop .
+docker run -p 3001:3001 linkdrop
 ```
 
 ### 5. Run Tests

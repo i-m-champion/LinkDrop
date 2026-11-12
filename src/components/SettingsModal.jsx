@@ -34,11 +34,11 @@ export default function SettingsModal({
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 p-4 backdrop-blur-md"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 p-4 backdrop-blur-md"
       onClick={onClose}
     >
       <div
-        className="glass-panel w-full max-w-lg rounded-3xl border border-white/15 p-6 shadow-2xl"
+        className="glass-panel w-full max-w-lg rounded-3xl border border-slate-200/90 p-6 shadow-2xl"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex items-center justify-between border-b border-slate-200 pb-4 dark:border-white/[0.08]">

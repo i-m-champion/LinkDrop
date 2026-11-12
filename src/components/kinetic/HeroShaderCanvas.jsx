@@ -68,15 +68,12 @@ const FRAGMENT_SHADER = `
     float r = fbm(p * 2.3 + vec2(q * 1.6, uTime * 0.09));
     float f = fbm(p * 1.5 + r);
 
-    vec3 baseDark = vec3(0.027, 0.027, 0.042);
-    vec3 baseLight = vec3(0.957, 0.945, 0.918);
-    vec3 base = mix(baseLight, baseDark, uIsDark);
+    vec3 baseLight = vec3(0.980, 0.976, 0.965);
+    vec3 glow = mix(uAccentA, uAccentB, smoothstep(0.22, 0.88, f));
+    float intensity = smoothstep(0.28, 0.95, f) * 0.19;
+    float cursorHalo = exp(-pointerDist * 2.9) * 0.16;
 
-    vec3 glow = mix(uAccentA, uAccentB, smoothstep(0.25, 0.85, f));
-    float intensity = smoothstep(0.32, 0.95, f) * (uIsDark > 0.5 ? 0.42 : 0.22);
-    float cursorHalo = exp(-pointerDist * 3.1) * (uIsDark > 0.5 ? 0.22 : 0.14);
-
-    vec3 col = base + glow * (intensity + cursorHalo + abs(rippleWave) * 0.45);
+    vec3 col = mix(baseLight, glow, clamp(intensity + cursorHalo + abs(rippleWave) * 0.35, 0.0, 0.55));
     gl_FragColor = vec4(col, 1.0);
   }
 `;
