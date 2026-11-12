@@ -5,9 +5,8 @@ export default {
   theme: {
     extend: {
       fontFamily: {
-        display: ['"Syne"', 'system-ui', 'sans-serif'],
-        serif: ['"Instrument Serif"', 'Georgia', 'serif'],
-        sans: ['"DM Sans"', 'system-ui', 'sans-serif'],
+        display: ['"Space Grotesk"', '"Plus Jakarta Sans"', 'system-ui', 'sans-serif'],
+        sans: ['"Plus Jakarta Sans"', 'system-ui', 'sans-serif'],
         mono: ['"JetBrains Mono"', 'ui-monospace', 'monospace'],
       },
       colors: {

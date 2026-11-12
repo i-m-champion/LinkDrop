@@ -465,8 +465,8 @@ export default function App() {
   const shaderAccentB = currentPlatformConfig?.shaderB || '#8b5cf6';
 
   return (
-    <div className="relative min-h-screen bg-[#f4f1ea] text-slate-900 dark:bg-[#07070a] dark:text-[#f4f1ea]">
-      {/* Custom 60-120fps Kinetic Morphing Cursor (Desktop Only) */}
+    <div className="relative min-h-screen bg-[#f6f5f1] text-slate-900 dark:bg-[#07070b] dark:text-[#f6f5f1]">
+      {/* Custom 60-120fps Morphing Cursor (Desktop Only) */}
       <KineticCursor />
 
       {/* 60fps Three.js GLSL FBM Plasma Canvas */}
@@ -477,11 +477,10 @@ export default function App() {
       />
 
       {/* Architectural Hairline Grid Overlay */}
-      <div className="bg-studio-grid pointer-events-none fixed inset-0 z-0 opacity-60" />
+      <div className="bg-studio-grid pointer-events-none fixed inset-0 z-0 opacity-50" />
 
       <div className="relative z-10">
         <Header
-          activePlatform={activePlatform}
           onSelectPlatform={navigateToPlatform}
           concurrency={concurrency}
           hasSession={Boolean(sessionId?.trim())}

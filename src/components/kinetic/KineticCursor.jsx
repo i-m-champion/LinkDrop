@@ -41,17 +41,18 @@ export default function KineticCursor() {
     let activeLabel = '';
 
     const setCursorState = (text, isInteractive) => {
+      const isDark = document.documentElement.classList.contains('dark');
       if (text) {
         if (activeLabel !== text) {
           labelEl.textContent = text;
           activeLabel = text;
         }
         gsap.to(ring, {
-          width: Math.max(74, text.length * 9 + 28),
+          width: Math.max(76, text.length * 9 + 28),
           height: 34,
           borderRadius: 999,
-          backgroundColor: 'rgba(255, 94, 43, 0.92)',
-          borderColor: 'rgba(255, 255, 255, 0.45)',
+          backgroundColor: 'rgba(255, 94, 43, 0.94)',
+          borderColor: 'rgba(255, 255, 255, 0.5)',
           duration: 0.24,
           ease: 'power3.out',
         });
@@ -63,13 +64,13 @@ export default function KineticCursor() {
           width: 46,
           height: 46,
           borderRadius: 999,
-          backgroundColor: 'rgba(255, 255, 255, 0.08)',
-          borderColor: 'rgba(255, 94, 43, 0.75)',
+          backgroundColor: isDark ? 'rgba(255, 255, 255, 0.08)' : 'rgba(15, 23, 42, 0.06)',
+          borderColor: 'rgba(255, 94, 43, 0.85)',
           duration: 0.22,
           ease: 'power3.out',
         });
         gsap.to(labelEl, { opacity: 0, scale: 0.85, duration: 0.12 });
-        gsap.to(dot, { opacity: 1, scale: 1.3, duration: 0.15 });
+        gsap.to(dot, { opacity: 1, scale: 1.35, duration: 0.15 });
       } else {
         activeLabel = '';
         gsap.to(ring, {
@@ -77,7 +78,7 @@ export default function KineticCursor() {
           height: 34,
           borderRadius: 999,
           backgroundColor: 'transparent',
-          borderColor: 'rgba(244, 241, 234, 0.45)',
+          borderColor: isDark ? 'rgba(244, 241, 234, 0.45)' : 'rgba(15, 23, 42, 0.38)',
           duration: 0.22,
           ease: 'power3.out',
         });
