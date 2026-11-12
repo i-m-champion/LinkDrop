@@ -14,7 +14,7 @@
   <a href="https://tailwindcss.com/"><img src="https://img.shields.io/badge/Tailwind_CSS-3.4-06B6D4?style=for-the-badge&logo=tailwindcss&logoColor=white" alt="Tailwind CSS" /></a>
   <a href="https://github.com/yt-dlp/yt-dlp"><img src="https://img.shields.io/badge/yt--dlp-Powered-ef4444?style=for-the-badge&logo=youtube&logoColor=white" alt="yt-dlp" /></a>
   <a href="https://ffmpeg.org/"><img src="https://img.shields.io/badge/FFmpeg-Muxing-007808?style=for-the-badge&logo=ffmpeg&logoColor=white" alt="FFmpeg" /></a>
-  <img src="https://img.shields.io/badge/License-MIT-8b5cf6?style=for-the-badge" alt="License MIT" />
+  <a href="LICENSE"><img src="https://img.shields.io/badge/License-MIT-8b5cf6?style=for-the-badge" alt="License MIT" /></a>
 </p>
 
 <p align="center">
