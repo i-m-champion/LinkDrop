@@ -1,29 +1,40 @@
 <div align="center">
 
 <!-- Hero Banner -->
-<img src="https://capsule-render.vercel.app/api?type=waving&color=0:f97316,50:ec4899,100:8b5cf6&height=210&section=header&text=ReelJet&fontSize=64&fontColor=ffffff&fontAlignY=38&desc=High-Speed%20Batch%20Instagram%20Reel%20Downloader&descSize=18&descAlignY=62&animation=fadeIn" alt="ReelJet Banner" width="100%" />
+<img src="https://capsule-render.vercel.app/api?type=waving&color=0:f97316,50:ec4899,100:8b5cf6&height=215&section=header&text=ReelJet%20Studio&fontSize=60&fontColor=ffffff&fontAlignY=38&desc=Universal%20High-Speed%20Video%20%26%20Audio%20Batch%20Downloader&descSize=18&descAlignY=62&animation=fadeIn" alt="ReelJet Studio Banner" width="100%" />
 
 <p align="center">
   <a href="https://nodejs.org/"><img src="https://img.shields.io/badge/Node.js-18%2B-339933?style=for-the-badge&logo=nodedotjs&logoColor=white" alt="Node.js" /></a>
   <a href="https://react.dev/"><img src="https://img.shields.io/badge/React-18-61DAFB?style=for-the-badge&logo=react&logoColor=black" alt="React" /></a>
   <a href="https://tailwindcss.com/"><img src="https://img.shields.io/badge/Tailwind_CSS-3.4-06B6D4?style=for-the-badge&logo=tailwindcss&logoColor=white" alt="Tailwind CSS" /></a>
-  <a href="https://expressjs.com/"><img src="https://img.shields.io/badge/Express-4.21-111827?style=for-the-badge&logo=express&logoColor=white" alt="Express" /></a>
-  <a href="https://github.com/i-m-champion/Insta-downloader/blob/main/LICENSE"><img src="https://img.shields.io/badge/License-MIT-ec4899?style=for-the-badge" alt="MIT License" /></a>
+  <a href="https://github.com/yt-dlp/yt-dlp"><img src="https://img.shields.io/badge/yt--dlp-Powered-ef4444?style=for-the-badge&logo=youtube&logoColor=white" alt="yt-dlp" /></a>
+  <a href="https://ffmpeg.org/"><img src="https://img.shields.io/badge/FFmpeg-Muxing-007808?style=for-the-badge&logo=ffmpeg&logoColor=white" alt="FFmpeg" /></a>
 </p>
 
 <p align="center">
-  <strong>Paste dozens of Instagram Reel links at once. Extract streams concurrently in real time, preview in HD, and download your entire batch in a single wire-speed ZIP.</strong>
+  <strong>Paste mixed links from YouTube, Instagram, TikTok, X, Reddit &amp; 1,000+ sites. Extract streams in parallel, convert to HD MP4 or lossless audio, trim exact clips, grab subtitles, and bundle everything into a folder-organized ZIP.</strong>
 </p>
 
 <p align="center">
+  <a href="#-supported-platforms">Platforms</a> •
   <a href="#-key-features">Features</a> •
   <a href="#-architecture">Architecture</a> •
   <a href="#-quick-start">Quick Start</a> •
-  <a href="#-api-reference">API Reference</a> •
-  <a href="#-performance-engineering">Performance</a>
+  <a href="#-api-reference">API Reference</a>
 </p>
 
 </div>
+
+---
+
+## 🌐 Supported Platforms
+
+| Platform | Capabilities |
+| :--- | :--- |
+| **YouTube** | Videos, Shorts, Music, **4K/1440p/1080p Muxed MP4**, **Playlist Expander**, `.srt` Subtitles |
+| **Instagram** | Reels, Posts, Carousels via **Ultra-Fast SSR Engine** (~0.5s) + optional `sessionid` unlock |
+| **TikTok / X / Facebook** | Watermark-free HD MP4s, audio extraction, batch ZIP bundling |
+| **Reddit / Vimeo / Twitch / 1,000+ Sites** | Automatic resolution detection, audio conversion, clipping & cover download |
 
 ---
 
@@ -32,32 +43,32 @@
 <table>
   <tr>
     <td width="50%">
-      <h3>⚡ Parallel Multi-Link Extraction</h3>
-      <p>Resolve up to <strong>100 Instagram Reel & Post URLs</strong> simultaneously using a configurable worker pool (<code>2x Safe</code>, <code>5x Balanced</code>, <code>8x Turbo</code>) with live <strong>Server-Sent Events (SSE)</strong> streaming progress.</p>
+      <h3>⚡ Mixed-Platform Parallel Batching</h3>
+      <p>Paste 1 to 100 links from different platforms in one box. Color-coded detection pills, bounded worker concurrency (<code>2x Safe</code>, <code>5x Balanced</code>, <code>8x Turbo</code>), and live SSE progress.</p>
     </td>
     <td width="50%">
-      <h3>📦 Wire-Speed Store-Mode ZIP</h3>
-      <p>Bundle dozens of HD MP4s into one archive using <strong>zero-compression ZIP streaming</strong> (<code>zlib level 0</code>) with parallel CDN prefetch windows and live MB/s throughput telemetry.</p>
-    </td>
-  </tr>
-  <tr>
-    <td width="50%">
-      <h3>🧠 Smart Messy-Text URL Parser</h3>
-      <p>Paste links separated by spaces, commas, newlines, or copied straight from WhatsApp/Notes — ReelJet automatically extracts, normalizes, and deduplicates every shortcode.</p>
-    </td>
-    <td width="50%">
-      <h3>🎬 Studio Preview & Range Proxy</h3>
-      <p>Inspect thumbnails, captions, creator handles, audio attribution, and scrub full HD video inside a sleek theater modal via an HTTP <code>Range</code>-capable streaming proxy.</p>
+      <h3>🎬 4K Muxing &amp; Audio Studio</h3>
+      <p>Choose per-item or batch-wide output: <strong>MP4 (4K / 1440p / 1080p / 720p)</strong> muxed cleanly via <code>ffmpeg</code>, or extract <strong>MP3 (320k), M4A, FLAC, WAV</strong> with embedded cover art.</p>
     </td>
   </tr>
   <tr>
     <td width="50%">
-      <h3>🛡️ Multi-Strategy Fallback Engine</h3>
-      <p>Combines ultra-fast SSR <code>data-sjs</code> JSON parsing, GraphQL fallback, Embed endpoint extraction, and optional local <code>yt-dlp</code> fallback with automatic 15-minute TTL caching.</p>
+      <h3>✂️ Clip Trimmer, Subtitles &amp; Covers</h3>
+      <p>Preview in HD inside the Studio Modal, trim exact <code>Start → End</code> timestamp segments, download <code>.srt</code> captions, and save full-resolution thumbnails.</p>
     </td>
     <td width="50%">
-      <h3>🔐 Optional Session Unlock</h3>
-      <p>Optionally supply your browser's <code>sessionid</code> cookie in <strong>Studio Settings</strong> to unlock age-restricted reels. Stored strictly in your browser's <code>localStorage</code>.</p>
+      <h3>📂 Folder-Grouped Store-Mode ZIP</h3>
+      <p>Bundle dozens of videos &amp; audio tracks into one archive organized into platform folders (<code>YouTube/</code>, <code>Instagram/</code>, <code>TikTok/</code>) at wire speed.</p>
+    </td>
+  </tr>
+  <tr>
+    <td width="50%">
+      <h3>📜 Playlist Expander</h3>
+      <p>Drop any YouTube Playlist link and click <strong>Expand Playlist</strong> to populate up to 30+ videos directly into your batch studio queue.</p>
+    </td>
+    <td width="50%">
+      <h3>🌓 Dark/Light Studio + Table View + History</h3>
+      <p>Switch between a visual Card Grid and a high-density Compact Table View, toggle Dark/Light mode, and re-queue past downloads from the History Drawer.</p>
     </td>
   </tr>
 </table>
@@ -66,19 +77,19 @@
 
 ## 🏗️ Architecture
 
-ReelJet eliminates disk buffering and sequential bottlenecks by streaming directly from Instagram's CDN through a bounded-concurrency Express pipeline:
-
 ```mermaid
 flowchart LR
-    A["User Pastes N Reel Links"] --> B["Smart URL Parser & Deduplicator"]
+    A["Mixed URLs / Playlists"] --> B["Multi-Platform Parser & Detector"]
     B --> C["POST /api/extract/batch (SSE)"]
-    C --> D["Concurrency Worker Pool (2x - 10x)"]
-    D --> E1["SSR data-sjs Extractor (~500ms)"]
-    E1 -->|Fallback| E2["GraphQL / Embed / yt-dlp"]
-    E1 --> F["15m In-Memory TTL Cache"]
-    F --> G["React Studio Grid (Live Cards)"]
-    G --> H["GET /api/stream/:code (Range MP4)"]
-    G --> I["POST /api/download-zip (Store-Mode ZIP)"]
+    C --> D{"Platform Router"}
+    D -->|Instagram| E1["Fast SSR data-sjs Parser (~0.5s)"]
+    D -->|YouTube & 1000+ Sites| E2["yt-dlp Metadata & Format Resolver"]
+    E1 --> F["20m In-Memory TTL Cache"]
+    E2 --> F
+    F --> G["React Studio (Grid / Table / Modal)"]
+    G --> H["GET /api/prepare/:id (SSE Progress)"]
+    H --> I["FFmpeg Mux / Trim / MP3-FLAC-WAV"]
+    G --> J["POST /api/download-zip (Folder-Grouped ZIP)"]
 ```
 
 ---
@@ -86,9 +97,8 @@ flowchart LR
 ## 🚀 Quick Start
 
 ### Prerequisites
-- **Node.js 18+** (tested on Node 20–26)
-- **npm 9+**
-- *(Optional)* `yt-dlp` installed globally if you want an extra fallback layer
+- **Node.js 18+**
+- **yt-dlp** & **ffmpeg** (installed on macOS via `brew install yt-dlp ffmpeg`, or use the included `Dockerfile`)
 
 ### 1. Clone & Install
 
@@ -98,26 +108,32 @@ cd Insta-downloader
 npm install
 ```
 
-### 2. Run in Development Mode (Hot Reload)
-
-Starts both the Express API server (`http://localhost:3001`) and the Vite React frontend (`http://localhost:5173`):
+### 2. Run in Development Mode
 
 ```bash
 npm run dev
 ```
 
-Open **[http://localhost:5173](http://localhost:5173)** in your browser.
+- Frontend (Vite): **[http://localhost:5173](http://localhost:5173)**
+- Backend API: **[http://localhost:3001](http://localhost:3001)**
 
-### 3. Build & Run in Production (Single Server)
+### 3. Build & Run in Production
 
 ```bash
 npm run build
 npm start
 ```
 
-Everything is served cleanly from **[http://localhost:3001](http://localhost:3001)**.
+Everything runs on **[http://localhost:3001](http://localhost:3001)**.
 
-### 4. Run Tests
+### 4. Deploy Anywhere with Docker
+
+```bash
+docker build -t reeljet-studio .
+docker run -p 3001:3001 reeljet-studio
+```
+
+### 5. Run Tests
 
 ```bash
 npm test
@@ -125,57 +141,28 @@ npm test
 
 ---
 
-## 🎯 How to Use
-
-1. **Paste Links** — Drop 1 or 50+ Instagram Reel/Post URLs into the **Batch Link Studio** (or click **Paste** / **Sample Link**).
-2. **Choose Speed** — Pick `Safe (2x)`, `Balanced (5x)`, or `Turbo (8x)` concurrency (or fine-tune 1–10 threads in **Studio Settings**).
-3. **Fetch Batch** — Click **Fetch Reels** (or press `⌘ + Enter` / `Ctrl + Enter`). Watch cards stream in live with thumbnails, resolution, duration, and file sizes.
-4. **Download Everything**:
-   - Click **Download ZIP** to bundle all selected reels into a single `.zip` at wire speed.
-   - Click **Download All MP4s** to save each video individually.
-   - Or click any card's **Play** button to preview in HD before saving.
-
----
-
 ## 🔌 API Reference
 
 | Method | Endpoint | Description |
 | :--- | :--- | :--- |
-| `GET` | `/api/health` | Health check and service status |
-| `POST` | `/api/parse` | Extracts and deduplicates Instagram shortcodes from raw text |
-| `POST` | `/api/extract/batch` | **SSE stream** resolving multiple reels concurrently (`{ items, concurrency, sessionId }`) |
-| `GET` | `/api/thumb/:shortcode` | Proxies CDN thumbnails cleanly with CORS/CORP headers handled |
-| `GET` | `/api/stream/:shortcode` | Streams HD MP4 with `Range` seeking support (`?download=1&filename=...` for attachment) |
-| `POST` | `/api/download-zip` | Concurrent prefetch + **Store-mode ZIP** streaming (`{ shortcodes, template, concurrency }`) |
-
----
-
-## ⚡ Performance Engineering
-
-Why is ReelJet noticeably faster than typical web downloaders?
-
-1. **Zero Headless Browser Overhead** — No Puppeteer/Playwright startup tax. Primary extraction parses Instagram's SSR `data-sjs` payload in a single HTTP request (~0.5–1.5s).
-2. **Bounded Parallelism** — A custom async worker pool resolves batches concurrently instead of one-by-one, cutting a 20-reel batch from ~25s down to ~3s.
-3. **Store-Mode ZIP (`level: 0`)** — H.264/AAC MP4 files are already compressed. Skipping redundant deflate compression removes CPU bottlenecks and lets ZIP downloads run at full network speed.
-4. **Prefetch Windows** — During ZIP bundling, multiple CDN video streams are fetched in parallel windows while feeding the archive stream.
-5. **TTL Metadata Cache** — Previewing a reel and then downloading it (or including it in a ZIP) reuses the cached stream metadata instantaneously.
-
----
-
-## 🛠️ Tech Stack
-
-- **Frontend:** React 18, Vite, Tailwind CSS, Lucide Icons, Plus Jakarta Sans & JetBrains Mono
-- **Backend:** Node.js, Express, Archiver (streaming ZIP), Native Fetch & Web Streams
-- **Testing:** Node.js native test runner (`node --test`)
+| `GET` | `/api/health` | Service health + live `yt-dlp` / `ffmpeg` capability flags |
+| `POST` | `/api/parse` | Parses & deduplicates mixed-platform URLs + playlist flags |
+| `POST` | `/api/playlist/expand` | Expands a YouTube playlist URL into queue items |
+| `POST` | `/api/extract/batch` | **SSE stream** extracting mixed URLs concurrently |
+| `GET` | `/api/thumb/:id` | Proxies thumbnail (`?download=1` saves full-res `.jpg`) |
+| `GET` | `/api/subtitles/:id` | Extracts `.srt` subtitles (`?lang=en`) |
+| `GET` | `/api/stream/:id` | HTTP `Range` streaming proxy for instant HD preview & direct saves |
+| `GET` | `/api/prepare/:id` | **SSE progress** for HD muxing, MP3/M4A/FLAC/WAV conversion & clipping |
+| `GET` | `/api/file/:token` | One-time download endpoint with automatic temp cleanup |
+| `POST` | `/api/download-zip` | Concurrent mixed-format ZIP bundler with optional platform folders |
 
 ---
 
 ## ⚠️ Disclaimer
 
-This tool is built for personal archiving, educational use, and downloading content you own or have permission to save. Please respect creators' copyrights and Instagram's Terms of Service.
+This tool is designed for personal archiving, offline viewing, and downloading content you own or have permission to save. Please respect creators' copyrights and platform Terms of Service.
 
 <div align="center">
   <br />
   <sub>Built with ⚡ by <a href="https://github.com/i-m-champion">i-m-champion</a></sub>
 </div>
-

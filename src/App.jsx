@@ -7,14 +7,22 @@ import {
   CheckCircle2,
   AlertCircle,
   Info,
+  Music,
+  Scissors,
 } from 'lucide-react';
 import Header from './components/Header.jsx';
 import LinkInputCard from './components/LinkInputCard.jsx';
 import BatchDock from './components/BatchDock.jsx';
 import ReelCard from './components/ReelCard.jsx';
+import MediaTable from './components/MediaTable.jsx';
 import VideoModal from './components/VideoModal.jsx';
 import SettingsModal from './components/SettingsModal.jsx';
-import { buildDownloadFilename } from './utils/formatters.js';
+import HistoryDrawer from './components/HistoryDrawer.jsx';
+import {
+  FORMAT_PRESETS,
+  buildDownloadFilename,
+  downloadViaPrepareSSE,
+} from './utils/formatters.js';
 
 function useLocalStorage(key, initialValue) {
   const [val, setVal] = useState(() => {
@@ -44,21 +52,25 @@ function useLocalStorage(key, initialValue) {
 
 export default function App() {
   const [rawInput, setRawInput] = useState('');
+  const [theme, setTheme] = useLocalStorage('reeljet:theme', 'dark');
   const [concurrency, setConcurrency] = useLocalStorage('reeljet:concurrency', 5);
-  const [filenameTemplate, setFilenameTemplate] = useLocalStorage(
-    'reeljet:template',
-    'user_shortcode'
-  );
+  const [filenameTemplate, setFilenameTemplate] = useLocalStorage('reeljet:template', 'title_id');
+  const [defaultPresetId, setDefaultPresetId] = useLocalStorage('reeljet:preset', 'mp4_best');
+  const [groupByPlatform, setGroupByPlatform] = useLocalStorage('reeljet:groupPlatform', true);
+  const [viewMode, setViewMode] = useLocalStorage('reeljet:viewMode', 'grid');
   const [sessionId, setSessionId] = useLocalStorage('reeljet:sessionid', '');
+  const [history, setHistory] = useLocalStorage('reeljet:history', []);
 
+  const [capabilities, setCapabilities] = useState(null);
   const [queue, setQueue] = useState([]);
-  const [selectedCodes, setSelectedCodes] = useState(new Set());
+  const [selectedIds, setSelectedIds] = useState(new Set());
   const [filter, setFilter] = useState('all');
   const [isExtracting, setIsExtracting] = useState(false);
   const [elapsedMs, setElapsedMs] = useState(0);
 
   const [previewItem, setPreviewItem] = useState(null);
   const [settingsOpen, setSettingsOpen] = useState(false);
+  const [historyOpen, setHistoryOpen] = useState(false);
   const [toast, setToast] = useState(null);
   const [zipState, setZipState] = useState({
     active: false,
@@ -69,10 +81,25 @@ export default function App() {
   const abortRef = useRef(null);
   const toastTimerRef = useRef(null);
 
+  // Sync dark/light class on <html>
+  useEffect(() => {
+    const root = document.documentElement;
+    if (theme === 'dark') root.classList.add('dark');
+    else root.classList.remove('dark');
+  }, [theme]);
+
+  // Fetch engine capabilities
+  useEffect(() => {
+    fetch('/api/health')
+      .then((r) => r.json())
+      .then((j) => setCapabilities(j.capabilities || null))
+      .catch(() => {});
+  }, []);
+
   const showToast = useCallback((message, type = 'info') => {
     if (toastTimerRef.current) clearTimeout(toastTimerRef.current);
     setToast({ message, type, id: Date.now() });
-    toastTimerRef.current = setTimeout(() => setToast(null), 3400);
+    toastTimerRef.current = setTimeout(() => setToast(null), 3600);
   }, []);
 
   useEffect(() => {
@@ -82,33 +109,86 @@ export default function App() {
     };
   }, []);
 
+  const activePreset =
+    FORMAT_PRESETS.find((p) => p.id === defaultPresetId) || FORMAT_PRESETS[0];
+
+  const handleChangePresetId = (presetId) => {
+    setDefaultPresetId(presetId);
+    const preset = FORMAT_PRESETS.find((p) => p.id === presetId);
+    if (preset && queue.length > 0) {
+      setQueue((prev) =>
+        prev.map((q) => ({
+          ...q,
+          format: preset.format,
+          quality: preset.quality,
+        }))
+      );
+      showToast(`Applied "${preset.label}" to queue items.`, 'info');
+    }
+  };
+
+  const recordHistory = useCallback(
+    (data, format, quality) => {
+      if (!data?.id) return;
+      setHistory((prev) => {
+        const entry = {
+          id: data.id,
+          platform: data.platform,
+          title: data.title || data.caption || data.id,
+          username: data.username || data.platform,
+          url: data.url,
+          duration: data.duration,
+          format,
+          quality,
+          ts: Date.now(),
+        };
+        const deduped = prev.filter((h) => !(h.id === entry.id && h.format === entry.format));
+        return [entry, ...deduped].slice(0, 50);
+      });
+    },
+    [setHistory]
+  );
+
   const runBatchExtraction = useCallback(
     async (parsedItems, { mergeIntoExisting = false } = {}) => {
-      if (!parsedItems.length) return;
+      const nonPlaylistItems = parsedItems.filter((p) => !p.isPlaylist);
+      if (!nonPlaylistItems.length) {
+        showToast(
+          'Playlist link detected! Click "Expand Playlist" above to load its videos first.',
+          'info'
+        );
+        return;
+      }
 
       abortRef.current?.abort();
       const controller = new AbortController();
       abortRef.current = controller;
+
+      const preset = FORMAT_PRESETS.find((p) => p.id === defaultPresetId) || FORMAT_PRESETS[0];
 
       setIsExtracting(true);
       if (!mergeIntoExisting) {
         setElapsedMs(0);
         setFilter('all');
         setQueue(
-          parsedItems.map((p) => ({
-            shortcode: p.shortcode,
+          nonPlaylistItems.map((p) => ({
+            id: p.id,
+            shortcode: p.shortcode || null,
+            platform: p.platform,
             url: p.url,
+            format: preset.format,
+            quality: preset.quality,
             status: 'queued',
             data: null,
             error: null,
           }))
         );
-        setSelectedCodes(new Set());
+        setSelectedIds(new Set());
       } else {
-        const retryCodes = new Set(parsedItems.map((p) => p.shortcode));
+        const retryIds = new Set(nonPlaylistItems.map((p) => p.id));
         setQueue((prev) =>
           prev.map((q) =>
-            retryCodes.has(q.shortcode) ? { ...q, status: 'queued', error: null } : q
+            retryIds.has(q.id) ? { ...q, status: 'queued', error: null } : q
           )
         );
       }
@@ -118,7 +198,7 @@ export default function App() {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            items: parsedItems,
+            items: nonPlaylistItems,
             concurrency,
             sessionId,
           }),
@@ -144,11 +224,12 @@ export default function App() {
           }
           if (!dataLine) return;
           const payload = JSON.parse(dataLine);
+          const targetId = payload.id || payload.shortcode;
 
           if (eventType === 'item') {
             setQueue((prev) =>
               prev.map((entry) => {
-                if (entry.shortcode !== payload.shortcode) return entry;
+                if (entry.id !== targetId) return entry;
                 return {
                   ...entry,
                   status: payload.status,
@@ -158,9 +239,9 @@ export default function App() {
               })
             );
             if (payload.status === 'ready') {
-              setSelectedCodes((prev) => {
+              setSelectedIds((prev) => {
                 const next = new Set(prev);
-                next.add(payload.shortcode);
+                next.add(targetId);
                 return next;
               });
             }
@@ -168,13 +249,13 @@ export default function App() {
             setElapsedMs(payload.elapsedMs || 0);
             if (payload.succeeded > 0) {
               showToast(
-                `Extracted ${payload.succeeded}/${payload.total} reel${
+                `Resolved ${payload.succeeded}/${payload.total} item${
                   payload.total === 1 ? '' : 's'
                 } in ${(payload.elapsedMs / 1000).toFixed(2)}s`,
                 payload.failed > 0 ? 'info' : 'success'
               );
             } else {
-              showToast('Could not extract any reels. Check links or settings.', 'error');
+              showToast('Could not extract any media. Check links or settings.', 'error');
             }
           }
         };
@@ -198,47 +279,43 @@ export default function App() {
         setIsExtracting(false);
       }
     },
-    [concurrency, sessionId, showToast]
+    [concurrency, defaultPresetId, sessionId, showToast]
   );
 
-  const handleToggleSelect = (shortcode) => {
-    setSelectedCodes((prev) => {
+  const handleToggleSelect = (id) => {
+    setSelectedIds((prev) => {
       const next = new Set(prev);
-      if (next.has(shortcode)) next.delete(shortcode);
-      else next.add(shortcode);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
       return next;
     });
   };
 
   const handleToggleSelectAll = () => {
-    const readyCodes = queue.filter((q) => q.status === 'ready').map((q) => q.shortcode);
-    const allSelected = readyCodes.every((c) => selectedCodes.has(c));
-    if (allSelected) {
-      setSelectedCodes(new Set());
-    } else {
-      setSelectedCodes(new Set(readyCodes));
-    }
+    const readyIds = queue.filter((q) => q.status === 'ready').map((q) => q.id);
+    const allSelected = readyIds.every((id) => selectedIds.has(id));
+    setSelectedIds(allSelected ? new Set() : new Set(readyIds));
+  };
+
+  const handleUpdateItemOptions = (id, patch) => {
+    setQueue((prev) =>
+      prev.map((q) => (q.id === id ? { ...q, ...patch } : q))
+    );
   };
 
   const handleRetryItem = (item) => {
-    runBatchExtraction([{ shortcode: item.shortcode, url: item.url }], {
-      mergeIntoExisting: true,
-    });
+    runBatchExtraction([item], { mergeIntoExisting: true });
   };
 
   const handleRetryFailed = () => {
-    const failed = queue
-      .filter((q) => q.status === 'error')
-      .map((q) => ({ shortcode: q.shortcode, url: q.url }));
-    if (failed.length) {
-      runBatchExtraction(failed, { mergeIntoExisting: true });
-    }
+    const failed = queue.filter((q) => q.status === 'error');
+    if (failed.length) runBatchExtraction(failed, { mergeIntoExisting: true });
   };
 
   const handleClearAll = () => {
     abortRef.current?.abort();
     setQueue([]);
-    setSelectedCodes(new Set());
+    setSelectedIds(new Set());
     setElapsedMs(0);
     setIsExtracting(false);
   };
@@ -254,9 +331,17 @@ export default function App() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          shortcodes: selectedItems.map((i) => i.shortcode),
+          items: selectedItems.map((i) => ({
+            id: i.id,
+            url: i.data?.url || i.url,
+            format: i.format || activePreset.format,
+            quality: i.quality || activePreset.quality,
+          })),
           template: filenameTemplate,
-          concurrency: Math.min(concurrency, 6),
+          format: activePreset.format,
+          quality: activePreset.quality,
+          groupByPlatform,
+          concurrency: Math.min(concurrency, 5),
           sessionId,
         }),
       });
@@ -287,13 +372,17 @@ export default function App() {
       const stamp = new Date().toISOString().slice(0, 10);
       const a = document.createElement('a');
       a.href = blobUrl;
-      a.download = `reeljet-${selectedItems.length}-reels-${stamp}.zip`;
+      a.download = `reeljet-${selectedItems.length}-files-${stamp}.zip`;
       document.body.appendChild(a);
       a.click();
       a.remove();
       setTimeout(() => URL.revokeObjectURL(blobUrl), 10000);
 
-      showToast(`Downloaded ${selectedItems.length} reels as ZIP!`, 'success');
+      for (const item of selectedItems) {
+        recordHistory(item.data, item.format || activePreset.format, item.quality || activePreset.quality);
+      }
+
+      showToast(`Downloaded ${selectedItems.length} items as ZIP!`, 'success');
     } catch (err) {
       showToast(err.message || 'ZIP download failed.', 'error');
     } finally {
@@ -303,24 +392,28 @@ export default function App() {
 
   const handleDownloadIndividualBatch = async (selectedItems) => {
     if (!selectedItems.length) return;
-    showToast(`Starting ${selectedItems.length} MP4 downloads...`, 'info');
+    showToast(`Processing ${selectedItems.length} downloads...`, 'info');
 
     for (let i = 0; i < selectedItems.length; i++) {
       const item = selectedItems[i];
-      const filename = buildDownloadFilename(item.data, filenameTemplate, i);
-      const params = new URLSearchParams({ download: '1', filename });
-      if (sessionId) params.set('sessionId', sessionId);
-
-      const a = document.createElement('a');
-      a.href = `/api/stream/${encodeURIComponent(item.shortcode)}?${params.toString()}`;
-      a.download = filename;
-      document.body.appendChild(a);
-      a.click();
-      a.remove();
-
-      // Short stagger so browsers don't throttle concurrent download prompts
-      await new Promise((r) => setTimeout(r, 320));
+      const fmt = item.format || activePreset.format;
+      const qual = item.quality || activePreset.quality;
+      const filename = buildDownloadFilename(item.data, filenameTemplate, i, fmt);
+      try {
+        await downloadViaPrepareSSE(item.data, {
+          format: fmt,
+          quality: qual,
+          template: filenameTemplate,
+          filename,
+          sessionId,
+        });
+        recordHistory(item.data, fmt, qual);
+      } catch (err) {
+        showToast(`Failed ${filename}: ${err.message}`, 'error');
+      }
+      await new Promise((r) => setTimeout(r, 250));
     }
+    showToast(`Completed batch download of ${selectedItems.length} files!`, 'success');
   };
 
   const filteredQueue = queue.filter((item) => {
@@ -330,10 +423,10 @@ export default function App() {
   });
 
   return (
-    <div className="relative min-h-screen bg-[#07070b] text-slate-100">
+    <div className="relative min-h-screen bg-slate-50 text-slate-900 dark:bg-[#07070b] dark:text-slate-100">
       {/* Ambient studio backdrop */}
       <div className="pointer-events-none fixed inset-0 overflow-hidden">
-        <div className="bg-studio-grid absolute inset-0 opacity-70" />
+        <div className="bg-studio-grid absolute inset-0 opacity-80" />
         <div className="animate-pulse-slow absolute -left-32 -top-32 h-[420px] w-[420px] rounded-full bg-pink-600/15 blur-[130px]" />
         <div className="animate-pulse-slow absolute right-[-120px] top-24 h-[460px] w-[460px] rounded-full bg-violet-600/15 blur-[140px]" />
         <div className="absolute bottom-[-180px] left-1/3 h-[380px] w-[380px] rounded-full bg-orange-500/10 blur-[140px]" />
@@ -342,37 +435,50 @@ export default function App() {
       <Header
         concurrency={concurrency}
         hasSession={Boolean(sessionId?.trim())}
+        historyCount={history.length}
+        theme={theme}
+        capabilities={capabilities}
+        onToggleTheme={() => setTheme((t) => (t === 'dark' ? 'light' : 'dark'))}
+        onOpenHistory={() => setHistoryOpen(true)}
         onOpenSettings={() => setSettingsOpen(true)}
       />
 
       <main className="relative z-10 mx-auto flex max-w-7xl flex-col gap-7 px-4 pb-20 pt-8 sm:px-6 lg:px-8">
         {/* Hero */}
         <section className="mx-auto max-w-3xl text-center">
-          <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.04] px-3.5 py-1.5 text-xs font-medium text-slate-300 backdrop-blur-md">
-            <Sparkles className="h-3.5 w-3.5 text-amber-400" />
-            <span>Zero-watermark HD MP4s • Parallel Streaming • Instant ZIP</span>
+          <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white/80 px-3.5 py-1.5 text-xs font-medium text-slate-700 backdrop-blur-md dark:border-white/10 dark:bg-white/[0.04] dark:text-slate-300">
+            <Sparkles className="h-3.5 w-3.5 text-amber-500 dark:text-amber-400" />
+            <span>YouTube • Instagram • TikTok • X • Reddit • 1,000+ Sites</span>
           </div>
 
-          <h1 className="text-3xl font-extrabold tracking-tight text-white sm:text-5xl">
-            Download dozens of{' '}
-            <span className="prism-text">Instagram Reels</span> at once.
+          <h1 className="text-3xl font-extrabold tracking-tight text-slate-900 dark:text-white sm:text-5xl">
+            Download <span className="prism-text">Videos &amp; Audio</span> from anywhere, in batches.
           </h1>
-          <p className="mx-auto mt-3.5 max-w-2xl text-sm leading-relaxed text-slate-400 sm:text-base">
-            Paste multiple Reel links below. ReelJet resolves every stream concurrently in real
-            time, lets you preview in HD, and bundles your entire batch into one wire-speed ZIP.
+          <p className="mx-auto mt-3.5 max-w-2xl text-sm leading-relaxed text-slate-600 dark:text-slate-400 sm:text-base">
+            Drop mixed links or playlists below. Extract streams in parallel, pick up to 4K MP4 or
+            lossless FLAC/MP3 audio, trim exact clips, grab subtitles, and bundle everything into one
+            organized ZIP.
           </p>
 
-          <div className="mt-5 flex flex-wrap items-center justify-center gap-3 text-xs text-slate-300">
-            <span className="inline-flex items-center gap-1.5 rounded-xl border border-white/[0.07] bg-white/[0.03] px-3 py-1.5">
-              <Zap className="h-3.5 w-3.5 text-amber-400" />
-              Up to 10x Parallel Threads
+          <div className="mt-5 flex flex-wrap items-center justify-center gap-2.5 text-xs text-slate-700 dark:text-slate-300">
+            <span className="inline-flex items-center gap-1.5 rounded-xl border border-slate-200 bg-white/80 px-3 py-1.5 dark:border-white/[0.07] dark:bg-white/[0.03]">
+              <Zap className="h-3.5 w-3.5 text-amber-500" />
+              Up to 4K HD Muxing
             </span>
-            <span className="inline-flex items-center gap-1.5 rounded-xl border border-white/[0.07] bg-white/[0.03] px-3 py-1.5">
-              <Layers className="h-3.5 w-3.5 text-pink-400" />
-              Store-Mode ZIP Streaming
+            <span className="inline-flex items-center gap-1.5 rounded-xl border border-slate-200 bg-white/80 px-3 py-1.5 dark:border-white/[0.07] dark:bg-white/[0.03]">
+              <Music className="h-3.5 w-3.5 text-pink-500" />
+              MP3 / M4A / FLAC / WAV
             </span>
-            <span className="inline-flex items-center gap-1.5 rounded-xl border border-white/[0.07] bg-white/[0.03] px-3 py-1.5">
-              <ShieldCheck className="h-3.5 w-3.5 text-emerald-400" />
+            <span className="inline-flex items-center gap-1.5 rounded-xl border border-slate-200 bg-white/80 px-3 py-1.5 dark:border-white/[0.07] dark:bg-white/[0.03]">
+              <Scissors className="h-3.5 w-3.5 text-cyan-500" />
+              Clip Trimmer &amp; .SRT
+            </span>
+            <span className="inline-flex items-center gap-1.5 rounded-xl border border-slate-200 bg-white/80 px-3 py-1.5 dark:border-white/[0.07] dark:bg-white/[0.03]">
+              <Layers className="h-3.5 w-3.5 text-violet-500" />
+              Folder-Grouped ZIP
+            </span>
+            <span className="inline-flex items-center gap-1.5 rounded-xl border border-slate-200 bg-white/80 px-3 py-1.5 dark:border-white/[0.07] dark:bg-white/[0.03]">
+              <ShieldCheck className="h-3.5 w-3.5 text-emerald-500" />
               100% Local &amp; Private
             </span>
           </div>
@@ -384,6 +490,8 @@ export default function App() {
           onChangeInput={setRawInput}
           concurrency={concurrency}
           onChangeConcurrency={setConcurrency}
+          defaultPresetId={defaultPresetId}
+          onChangePresetId={handleChangePresetId}
           isExtracting={isExtracting}
           onExtract={(items) => runBatchExtraction(items)}
           onToast={showToast}
@@ -392,9 +500,13 @@ export default function App() {
         {/* Sticky Batch Control Dock */}
         <BatchDock
           items={queue}
-          selectedCodes={selectedCodes}
+          selectedIds={selectedIds}
           filter={filter}
+          viewMode={viewMode}
+          groupByPlatform={groupByPlatform}
           onChangeFilter={setFilter}
+          onChangeViewMode={setViewMode}
+          onToggleGroupByPlatform={() => setGroupByPlatform((v) => !v)}
           onToggleSelectAll={handleToggleSelectAll}
           onRetryFailed={handleRetryFailed}
           onClearAll={handleClearAll}
@@ -404,34 +516,52 @@ export default function App() {
           elapsedMs={elapsedMs}
         />
 
-        {/* Extracted Grid */}
-        {filteredQueue.length > 0 && (
-          <section className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-            {filteredQueue.map((item, idx) => (
-              <ReelCard
-                key={item.shortcode}
-                item={item}
-                index={idx}
-                selected={selectedCodes.has(item.shortcode)}
-                filenameTemplate={filenameTemplate}
-                sessionId={sessionId}
-                onToggleSelect={handleToggleSelect}
-                onPreview={setPreviewItem}
-                onRetry={handleRetryItem}
-                onOpenSettings={() => setSettingsOpen(true)}
-                onToast={showToast}
-              />
-            ))}
-          </section>
-        )}
+        {/* Extracted Results (Grid or Compact Table) */}
+        {filteredQueue.length > 0 &&
+          (viewMode === 'table' ? (
+            <MediaTable
+              items={filteredQueue}
+              selectedIds={selectedIds}
+              filenameTemplate={filenameTemplate}
+              sessionId={sessionId}
+              onToggleSelect={handleToggleSelect}
+              onUpdateItemOptions={handleUpdateItemOptions}
+              onPreview={setPreviewItem}
+              onRetry={handleRetryItem}
+              onRecordHistory={recordHistory}
+              onToast={showToast}
+            />
+          ) : (
+            <section className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+              {filteredQueue.map((item, idx) => (
+                <ReelCard
+                  key={item.id}
+                  item={item}
+                  index={idx}
+                  selected={selectedIds.has(item.id)}
+                  filenameTemplate={filenameTemplate}
+                  sessionId={sessionId}
+                  onToggleSelect={handleToggleSelect}
+                  onUpdateItemOptions={handleUpdateItemOptions}
+                  onPreview={setPreviewItem}
+                  onRetry={handleRetryItem}
+                  onOpenSettings={() => setSettingsOpen(true)}
+                  onRecordHistory={recordHistory}
+                  onToast={showToast}
+                />
+              ))}
+            </section>
+          ))}
       </main>
 
-      {/* Modals */}
+      {/* Modals & Drawers */}
       <VideoModal
         item={previewItem}
         filenameTemplate={filenameTemplate}
         sessionId={sessionId}
         onClose={() => setPreviewItem(null)}
+        onRecordHistory={recordHistory}
+        onToast={showToast}
       />
 
       <SettingsModal
@@ -441,20 +571,36 @@ export default function App() {
         onChangeConcurrency={setConcurrency}
         filenameTemplate={filenameTemplate}
         onChangeTemplate={setFilenameTemplate}
+        groupByPlatform={groupByPlatform}
+        onToggleGroupByPlatform={() => setGroupByPlatform((v) => !v)}
         sessionId={sessionId}
         onChangeSessionId={setSessionId}
       />
 
+      <HistoryDrawer
+        open={historyOpen}
+        history={history}
+        onClose={() => setHistoryOpen(false)}
+        onRequeue={(url) => {
+          setRawInput((prev) => (prev.trim() ? `${prev.trim()}\n${url}` : url));
+          setHistoryOpen(false);
+          showToast('Added URL back to Batch Studio.', 'success');
+        }}
+        onClearHistory={() => {
+          setHistory([]);
+          showToast('Cleared download history.', 'info');
+        }}
+      />
+
       {/* Toast notification */}
       {toast && (
-        <div className="fixed bottom-5 right-5 z-50 flex max-w-sm items-center gap-2.5 rounded-2xl border border-white/15 bg-[#12141e]/95 px-4 py-3 text-xs font-medium text-white shadow-2xl backdrop-blur-xl">
-          {toast.type === 'success' && <CheckCircle2 className="h-4 w-4 shrink-0 text-emerald-400" />}
-          {toast.type === 'error' && <AlertCircle className="h-4 w-4 shrink-0 text-rose-400" />}
-          {toast.type === 'info' && <Info className="h-4 w-4 shrink-0 text-pink-400" />}
+        <div className="fixed bottom-5 right-5 z-50 flex max-w-sm items-center gap-2.5 rounded-2xl border border-slate-200 bg-white/95 px-4 py-3 text-xs font-medium text-slate-900 shadow-2xl backdrop-blur-xl dark:border-white/15 dark:bg-[#12141e]/95 dark:text-white">
+          {toast.type === 'success' && <CheckCircle2 className="h-4 w-4 shrink-0 text-emerald-500" />}
+          {toast.type === 'error' && <AlertCircle className="h-4 w-4 shrink-0 text-rose-500" />}
+          {toast.type === 'info' && <Info className="h-4 w-4 shrink-0 text-pink-500" />}
           <span>{toast.message}</span>
         </div>
       )}
     </div>
   );
 }
-
