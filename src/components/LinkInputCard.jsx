@@ -9,12 +9,15 @@ import {
   Gauge,
   ListVideo,
   SlidersHorizontal,
+  ArrowRightLeft,
 } from 'lucide-react';
 import {
   FORMAT_PRESETS,
   PLATFORM_BADGES,
   parseClientMediaUrls,
 } from '../utils/formatters.js';
+import { PLATFORM_MAP } from '../config/platformThemes.js';
+import PlatformIcon from './PlatformIcon.jsx';
 
 const SPEED_MODES = [
   { label: 'Safe', value: 2, desc: '2x' },
@@ -22,12 +25,11 @@ const SPEED_MODES = [
   { label: 'Turbo', value: 8, desc: '8x' },
 ];
 
-const SAMPLE_LINKS = `https://www.instagram.com/reel/DTVTvUDj-b1/
-https://www.youtube.com/watch?v=jNQXAC9IVRw`;
-
 export default function LinkInputCard({
+  platformConfig,
   rawInput,
   onChangeInput,
+  onSwitchPlatform,
   concurrency,
   onChangeConcurrency,
   defaultPresetId,
@@ -48,6 +50,14 @@ export default function LinkInputCard({
     return Object.entries(map);
   }, [parsed]);
 
+  const mismatchedPlatform = useMemo(() => {
+    if (!platformConfig || platformConfig.id === 'universal') return null;
+    const other = parsed.find(
+      (p) => p.platform !== platformConfig.id && PLATFORM_MAP[p.platform]
+    );
+    return other ? PLATFORM_MAP[other.platform] : null;
+  }, [parsed, platformConfig]);
+
   const playlistCandidates = useMemo(
     () => parsed.filter((p) => p.isPlaylist || p.playlistUrl),
     [parsed]
@@ -65,7 +75,7 @@ export default function LinkInputCard({
       const count = parseClientMediaUrls(text).length;
       onToast?.(
         count > 0
-          ? `Pasted ${count} media link${count > 1 ? 's' : ''} from clipboard.`
+          ? `Pasted ${count} link${count > 1 ? 's' : ''} from clipboard.`
           : 'Pasted clipboard text.',
         'success'
       );
@@ -111,23 +121,46 @@ export default function LinkInputCard({
     }
   };
 
-  return (
-    <section className="glass-panel relative overflow-hidden rounded-3xl p-5 sm:p-7">
-      <div className="pointer-events-none absolute inset-x-0 top-0 h-[2px] prism-gradient opacity-80" />
+  const gradClass = platformConfig?.gradientClass || 'from-[#ff5e2b] via-[#ec4899] to-[#8b5cf6]';
 
-      <div className="flex flex-col gap-5">
+  return (
+    <section
+      className="spotlight-card glass-panel relative overflow-hidden rounded-3xl p-5 sm:p-7"
+      style={{
+        '--spot-color': platformConfig?.spotColor || 'rgba(255, 94, 43, 0.65)',
+        '--spot-fill': platformConfig?.spotFill || 'rgba(255, 94, 43, 0.08)',
+      }}
+      onPointerMove={(e) => {
+        const rect = e.currentTarget.getBoundingClientRect();
+        e.currentTarget.style.setProperty('--mx', `${e.clientX - rect.left}px`);
+        e.currentTarget.style.setProperty('--my', `${e.clientY - rect.top}px`);
+      }}
+      onPointerLeave={(e) => {
+        e.currentTarget.style.setProperty('--mx', '-999px');
+        e.currentTarget.style.setProperty('--my', '-999px');
+      }}
+    >
+      <div className={`pointer-events-none absolute inset-x-0 top-0 h-[3px] bg-gradient-to-r ${gradClass}`} />
+
+      <div className="relative z-10 flex flex-col gap-5">
         {/* Top bar */}
         <div className="flex flex-wrap items-center justify-between gap-3">
-          <div className="flex items-center gap-2.5">
-            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-pink-500/15 text-pink-500 dark:text-pink-400">
-              <Link2 className="h-4 w-4" />
+          <div className="flex items-center gap-3">
+            <div
+              className={`flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br ${gradClass} text-white shadow-md`}
+            >
+              {platformConfig ? (
+                <PlatformIcon platformId={platformConfig.id} className="h-4 w-4" />
+              ) : (
+                <Link2 className="h-4 w-4" />
+              )}
             </div>
             <div>
-              <h2 className="text-sm font-bold text-slate-900 dark:text-white">
-                Universal Batch Studio
+              <h2 className="font-display text-sm font-bold text-slate-900 dark:text-white">
+                {platformConfig ? `${platformConfig.name} Link Input` : 'Batch Link Input'}
               </h2>
               <p className="text-xs text-slate-500 dark:text-slate-400">
-                Mix YouTube, Shorts, Playlists, Instagram Reels, TikTok, X, Reddit &amp; more in one batch
+                {platformConfig?.tagline || 'Paste 1 to 100 URLs — auto-cleaned & deduplicated'}
               </p>
             </div>
           </div>
@@ -135,6 +168,7 @@ export default function LinkInputCard({
           <div className="flex flex-wrap items-center gap-2">
             <button
               type="button"
+              data-cursor="PASTE"
               onClick={handlePaste}
               className="inline-flex items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-3 py-1.5 text-xs font-medium text-slate-700 transition hover:bg-slate-100 dark:border-white/[0.08] dark:bg-white/[0.04] dark:text-slate-200 dark:hover:bg-white/[0.08]"
             >
@@ -143,17 +177,20 @@ export default function LinkInputCard({
             </button>
             <button
               type="button"
-              onClick={() =>
-                onChangeInput(rawInput.trim() ? `${rawInput.trim()}\n${SAMPLE_LINKS}` : SAMPLE_LINKS)
-              }
+              data-cursor="SAMPLE"
+              onClick={() => {
+                const sample = platformConfig?.sampleLinks || '';
+                onChangeInput(rawInput.trim() ? `${rawInput.trim()}\n${sample}` : sample);
+              }}
               className="inline-flex items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-3 py-1.5 text-xs font-medium text-slate-700 transition hover:bg-slate-100 dark:border-white/[0.08] dark:bg-white/[0.04] dark:text-slate-200 dark:hover:bg-white/[0.08]"
             >
               <Sparkles className="h-3.5 w-3.5 text-amber-500 dark:text-amber-400" />
-              Sample Mix
+              Sample Link
             </button>
             {rawInput && (
               <button
                 type="button"
+                data-cursor="CLEAR"
                 onClick={() => onChangeInput('')}
                 className="inline-flex items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-3 py-1.5 text-xs font-medium text-slate-600 transition hover:border-rose-500/40 hover:bg-rose-500/10 hover:text-rose-500 dark:border-white/[0.08] dark:bg-white/[0.04] dark:text-slate-300 dark:hover:text-rose-300"
               >
@@ -172,8 +209,10 @@ export default function LinkInputCard({
             onKeyDown={handleKeyDown}
             rows={5}
             spellCheck={false}
-            placeholder={`Paste any combination of video or audio links here...\n\nhttps://www.youtube.com/watch?v=jNQXAC9IVRw\nhttps://www.instagram.com/reel/DTVTvUDj-b1/\nhttps://www.tiktok.com/@user/video/123456\nhttps://x.com/user/status/123456`}
-            className="w-full resize-y rounded-2xl border border-slate-200 bg-slate-50/90 px-4 py-3.5 font-mono text-xs leading-relaxed text-slate-900 placeholder-slate-400 shadow-inner transition focus:border-pink-500/60 focus:outline-none focus:ring-2 focus:ring-pink-500/20 dark:border-white/[0.09] dark:bg-[#090a10]/90 dark:text-slate-100 dark:placeholder-slate-500 sm:text-sm"
+            placeholder={platformConfig?.placeholder || 'Paste URLs here...'}
+            className={`w-full resize-y rounded-2xl border border-slate-200 bg-slate-50/90 px-4 py-3.5 font-mono text-xs leading-relaxed text-slate-900 placeholder-slate-400 shadow-inner transition focus:outline-none focus:ring-2 dark:border-white/[0.09] dark:bg-[#090a10]/90 dark:text-slate-100 dark:placeholder-slate-500 sm:text-sm ${
+              platformConfig?.ringClass || 'focus:border-pink-500/60 focus:ring-pink-500/20'
+            }`}
           />
 
           <div className="pointer-events-none absolute bottom-3 right-3 flex items-center gap-2">
@@ -188,6 +227,25 @@ export default function LinkInputCard({
             </span>
           </div>
         </div>
+
+        {/* Cross-platform smart hint if pasted link belongs to another dedicated studio */}
+        {mismatchedPlatform && (
+          <div className="flex flex-wrap items-center justify-between gap-2 rounded-2xl border border-amber-500/30 bg-amber-500/10 px-4 py-2.5 text-xs">
+            <span className="text-amber-800 dark:text-amber-200">
+              Detected <strong>{mismatchedPlatform.name}</strong> URL — you can extract it right
+              here, or jump to its dedicated studio.
+            </span>
+            <button
+              type="button"
+              data-cursor="SWITCH"
+              onClick={() => onSwitchPlatform?.(mismatchedPlatform.id)}
+              className="inline-flex items-center gap-1.5 rounded-xl bg-amber-500 px-3 py-1.5 text-[11px] font-bold text-white transition hover:brightness-110"
+            >
+              <ArrowRightLeft className="h-3 w-3" />
+              Open {mismatchedPlatform.name} Studio
+            </button>
+          </div>
+        )}
 
         {/* Platform Detection Breakdown + Playlist Expand Banner */}
         {parsed.length > 0 && (
@@ -213,6 +271,7 @@ export default function LinkInputCard({
             {playlistCandidates.length > 0 && (
               <button
                 type="button"
+                data-cursor="EXPAND"
                 disabled={expandingPlaylist}
                 onClick={() => handleExpandPlaylist(playlistCandidates[0])}
                 className="inline-flex items-center gap-1.5 rounded-xl border border-rose-500/35 bg-rose-500/15 px-3 py-1.5 text-xs font-semibold text-rose-600 transition hover:bg-rose-500/25 disabled:opacity-50 dark:text-rose-300"
@@ -233,8 +292,8 @@ export default function LinkInputCard({
         {/* Default Format Preset Bar */}
         <div className="flex flex-wrap items-center gap-2 rounded-2xl border border-slate-200/80 bg-slate-100/70 p-2.5 dark:border-white/[0.06] dark:bg-[#0a0b11]/80">
           <span className="inline-flex items-center gap-1.5 px-1.5 text-xs font-semibold text-slate-600 dark:text-slate-300">
-            <SlidersHorizontal className="h-3.5 w-3.5 text-pink-500" />
-            Default Output:
+            <SlidersHorizontal className="h-3.5 w-3.5 text-[#ff5e2b]" />
+            Output Preset:
           </span>
           <div className="flex flex-wrap items-center gap-1.5">
             {FORMAT_PRESETS.map((preset) => {
@@ -246,7 +305,7 @@ export default function LinkInputCard({
                   onClick={() => onChangePresetId(preset.id)}
                   className={`inline-flex items-center gap-1.5 rounded-xl px-3 py-1.5 text-xs font-semibold transition ${
                     active
-                      ? 'prism-gradient text-white shadow-sm shadow-pink-500/25'
+                      ? `bg-gradient-to-r ${gradClass} text-white shadow-sm`
                       : 'bg-white text-slate-700 hover:bg-slate-200/70 dark:bg-white/[0.05] dark:text-slate-300 dark:hover:bg-white/[0.1]'
                   }`}
                 >
@@ -281,9 +340,7 @@ export default function LinkInputCard({
                     }`}
                   >
                     {mode.label}{' '}
-                    <span className="font-mono text-[10px] text-pink-500 dark:text-pink-400">
-                      {mode.desc}
-                    </span>
+                    <span className="font-mono text-[10px] text-[#ff5e2b]">{mode.desc}</span>
                   </button>
                 );
               })}
@@ -293,14 +350,15 @@ export default function LinkInputCard({
           {/* Primary Fetch CTA */}
           <button
             type="button"
+            data-cursor="FETCH"
             disabled={parsed.length === 0 || isExtracting}
             onClick={() => onExtract(parsed)}
-            className="group relative inline-flex items-center justify-center gap-2.5 overflow-hidden rounded-2xl prism-gradient px-6 py-3 text-sm font-bold text-white shadow-lg shadow-pink-500/25 transition duration-200 hover:scale-[1.01] hover:shadow-pink-500/40 active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-45 disabled:hover:scale-100"
+            className={`group relative inline-flex items-center justify-center gap-2.5 overflow-hidden rounded-2xl bg-gradient-to-r ${gradClass} px-6 py-3 text-sm font-bold text-white shadow-lg transition duration-200 hover:scale-[1.01] hover:brightness-110 active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-45 disabled:hover:scale-100`}
           >
             {isExtracting ? (
               <>
                 <Loader2 className="h-4 w-4 animate-spin" />
-                <span>Extracting Media...</span>
+                <span>Extracting Streams...</span>
               </>
             ) : (
               <>

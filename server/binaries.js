@@ -57,3 +57,4 @@ export async function getEngineCapabilities(forceRefresh = false) {
 
   return capabilitiesCache;
 }
+

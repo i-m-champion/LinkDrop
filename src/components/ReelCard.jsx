@@ -29,6 +29,7 @@ export default function ReelCard({
   item,
   index,
   selected,
+  platformConfig,
   filenameTemplate,
   sessionId,
   onToggleSelect,
@@ -39,7 +40,7 @@ export default function ReelCard({
   onRecordHistory,
   onToast,
 }) {
-  const [dlProgress, setDlProgress] = useState(null); // { stage, percent, speed }
+  const [dlProgress, setDlProgress] = useState(null);
 
   const isReady = item.status === 'ready' && item.data;
   const isError = item.status === 'error';
@@ -52,8 +53,16 @@ export default function ReelCard({
   const selectedFormat = item.format || 'mp4';
   const selectedQuality = item.quality || 'best';
   const isAudio = ['mp3', 'm4a', 'flac', 'wav'].includes(selectedFormat);
-
   const availableQualities = data.qualities?.length ? data.qualities : [1080, 720, 480];
+
+  const gradClass = platformConfig?.gradientClass || 'from-[#ff5e2b] via-[#ec4899] to-[#8b5cf6]';
+  const cardAspect =
+    platformConfig?.cardAspect ||
+    (data.platform === 'instagram' || data.platform === 'tiktok'
+      ? 'aspect-[9/12]'
+      : data.platform === 'youtube'
+        ? 'aspect-video'
+        : 'aspect-[16/11]');
 
   const handleDownload = async () => {
     if (!isReady || dlProgress) return;
@@ -99,19 +108,32 @@ export default function ReelCard({
 
   return (
     <article
-      className={`glass-card group relative flex flex-col overflow-hidden rounded-2xl transition duration-300 ${
+      style={{
+        '--spot-color': platformConfig?.spotColor || 'rgba(255, 94, 43, 0.65)',
+        '--spot-fill': platformConfig?.spotFill || 'rgba(255, 94, 43, 0.08)',
+      }}
+      onPointerMove={(e) => {
+        const rect = e.currentTarget.getBoundingClientRect();
+        e.currentTarget.style.setProperty('--mx', `${e.clientX - rect.left}px`);
+        e.currentTarget.style.setProperty('--my', `${e.clientY - rect.top}px`);
+      }}
+      onPointerLeave={(e) => {
+        e.currentTarget.style.setProperty('--mx', '-999px');
+        e.currentTarget.style.setProperty('--my', '-999px');
+      }}
+      className={`spotlight-card glass-card group relative flex flex-col overflow-hidden rounded-2xl transition duration-300 ${
         selected
           ? 'ring-2 ring-pink-500/70 shadow-lg shadow-pink-500/15'
           : 'hover:-translate-y-0.5 hover:border-slate-300 dark:hover:border-white/20'
       }`}
     >
       {/* Thumbnail Box */}
-      <div className="relative aspect-[16/11] w-full overflow-hidden bg-slate-900">
+      <div className={`relative ${cardAspect} w-full overflow-hidden bg-slate-900`}>
         {isLoading && (
           <div className="flex h-full w-full flex-col items-center justify-center gap-3 p-5 text-center">
             <div className="shimmer-bar absolute inset-0" />
             <div className="relative z-10 flex h-11 w-11 items-center justify-center rounded-2xl border border-white/10 bg-white/[0.06]">
-              <Loader2 className="h-5 w-5 animate-spin text-pink-400" />
+              <Loader2 className="h-5 w-5 animate-spin text-[#ff5e2b]" />
             </div>
             <div className="relative z-10 space-y-1">
               <p className="text-xs font-semibold text-white">
@@ -177,7 +199,6 @@ export default function ReelCard({
 
             <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/85 via-black/15 to-black/50" />
 
-            {/* Top controls */}
             <div className="absolute inset-x-2.5 top-2.5 flex items-center justify-between gap-2">
               <div className="flex items-center gap-1.5">
                 <button
@@ -218,19 +239,18 @@ export default function ReelCard({
               </div>
             </div>
 
-            {/* Play button */}
             <button
               type="button"
+              data-cursor="PLAY"
               onClick={() => onPreview(item)}
               aria-label="Preview & Trim"
               className="absolute inset-0 flex items-center justify-center"
             >
-              <span className="flex h-11 w-11 items-center justify-center rounded-full border border-white/25 bg-black/50 text-white opacity-90 shadow-xl backdrop-blur-md transition duration-200 group-hover:scale-110 group-hover:border-pink-400/60 group-hover:bg-pink-500/85">
+              <span className="flex h-11 w-11 items-center justify-center rounded-full border border-white/25 bg-black/50 text-white opacity-90 shadow-xl backdrop-blur-md transition duration-200 group-hover:scale-110 group-hover:border-white/60 group-hover:bg-[#ff5e2b]">
                 <Play className="h-4 w-4 translate-x-0.5 fill-white" />
               </span>
             </button>
 
-            {/* Creator bottom bar */}
             <div className="pointer-events-none absolute inset-x-3 bottom-2.5 flex items-end justify-between gap-2">
               <div className="min-w-0">
                 <p className="truncate text-[11px] font-semibold text-white/95 drop-shadow">
@@ -254,7 +274,7 @@ export default function ReelCard({
       </div>
 
       {/* Card Body */}
-      <div className="flex flex-1 flex-col justify-between gap-3 p-3.5">
+      <div className="relative z-10 flex flex-1 flex-col justify-between gap-3 p-3.5">
         {isReady ? (
           <>
             <div className="space-y-2">
@@ -262,7 +282,6 @@ export default function ReelCard({
                 {data.title || data.caption || item.id}
               </h3>
 
-              {/* Metrics */}
               <div className="flex flex-wrap items-center gap-1.5 font-mono text-[10px] text-slate-500 dark:text-slate-400">
                 <span className="rounded-md bg-slate-100 px-2 py-0.5 text-slate-700 dark:bg-white/[0.06] dark:text-slate-200">
                   {formatBytes(data.fileSize)}
@@ -281,13 +300,10 @@ export default function ReelCard({
                 )}
               </div>
 
-              {/* Per-Item Format & Quality Selectors */}
               <div className="grid grid-cols-2 gap-1.5 pt-0.5">
                 <select
                   value={selectedFormat}
-                  onChange={(e) =>
-                    onUpdateItemOptions(item.id, { format: e.target.value })
-                  }
+                  onChange={(e) => onUpdateItemOptions(item.id, { format: e.target.value })}
                   className="rounded-lg border border-slate-200 bg-slate-50 px-2 py-1.5 font-mono text-[11px] font-semibold text-slate-800 focus:border-pink-500 focus:outline-none dark:border-white/[0.09] dark:bg-[#090a10] dark:text-slate-200"
                 >
                   <option value="mp4">MP4 Video</option>
@@ -300,9 +316,7 @@ export default function ReelCard({
                 <select
                   value={selectedQuality}
                   disabled={isAudio}
-                  onChange={(e) =>
-                    onUpdateItemOptions(item.id, { quality: e.target.value })
-                  }
+                  onChange={(e) => onUpdateItemOptions(item.id, { quality: e.target.value })}
                   className="rounded-lg border border-slate-200 bg-slate-50 px-2 py-1.5 font-mono text-[11px] font-semibold text-slate-800 focus:border-pink-500 focus:outline-none disabled:opacity-45 dark:border-white/[0.09] dark:bg-[#090a10] dark:text-slate-200"
                 >
                   <option value="best">Best Quality</option>
@@ -316,7 +330,6 @@ export default function ReelCard({
               </div>
             </div>
 
-            {/* Live Download / Mux Progress Bar */}
             {dlProgress && (
               <div className="space-y-1 rounded-xl border border-pink-500/25 bg-pink-500/10 p-2">
                 <div className="flex items-center justify-between text-[10px] font-semibold text-pink-600 dark:text-pink-200">
@@ -327,20 +340,20 @@ export default function ReelCard({
                 </div>
                 <div className="h-1 w-full overflow-hidden rounded-full bg-black/20">
                   <div
-                    className="h-full rounded-full prism-gradient transition-all duration-200"
+                    className={`h-full rounded-full bg-gradient-to-r ${gradClass} transition-all duration-200`}
                     style={{ width: `${dlProgress.percent || 10}%` }}
                   />
                 </div>
               </div>
             )}
 
-            {/* Action Buttons */}
             <div className="flex items-center gap-1.5">
               <button
                 type="button"
+                data-cursor="SAVE"
                 disabled={Boolean(dlProgress)}
                 onClick={handleDownload}
-                className="flex flex-1 items-center justify-center gap-1.5 rounded-xl prism-gradient px-3 py-2 text-xs font-bold text-white shadow-md shadow-pink-500/20 transition hover:brightness-110 disabled:opacity-60"
+                className={`flex flex-1 items-center justify-center gap-1.5 rounded-xl bg-gradient-to-r ${gradClass} px-3 py-2 text-xs font-bold text-white shadow-md transition hover:brightness-110 disabled:opacity-60`}
               >
                 {dlProgress ? (
                   <>
@@ -357,6 +370,7 @@ export default function ReelCard({
 
               <button
                 type="button"
+                data-cursor="TRIM"
                 onClick={() => onPreview(item)}
                 title="Preview, Trim Clip & Subtitles"
                 className="flex h-8 w-8 items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-600 transition hover:bg-slate-100 hover:text-slate-900 dark:border-white/[0.08] dark:bg-white/[0.04] dark:text-slate-300 dark:hover:bg-white/[0.1] dark:hover:text-white"
@@ -366,6 +380,7 @@ export default function ReelCard({
 
               <button
                 type="button"
+                data-cursor="COVER"
                 onClick={handleDownloadThumb}
                 title="Save Cover Thumbnail"
                 className="flex h-8 w-8 items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-600 transition hover:bg-slate-100 hover:text-slate-900 dark:border-white/[0.08] dark:bg-white/[0.04] dark:text-slate-300 dark:hover:bg-white/[0.1] dark:hover:text-white"
@@ -377,6 +392,7 @@ export default function ReelCard({
                 href={data.url || item.url}
                 target="_blank"
                 rel="noreferrer"
+                data-cursor="OPEN"
                 title="Open Source URL"
                 className="flex h-8 w-8 items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-600 transition hover:bg-slate-100 hover:text-slate-900 dark:border-white/[0.08] dark:bg-white/[0.04] dark:text-slate-300 dark:hover:bg-white/[0.1] dark:hover:text-white"
               >

@@ -299,3 +299,4 @@ export async function extractSubtitles(media, lang = 'en') {
     fs.promises.rm(jobDir, { recursive: true, force: true }).catch(() => {});
   }
 }
+

@@ -9,64 +9,107 @@
   html:not(.dark) {
     color-scheme: light;
   }
-
   body {
     overflow-x: hidden;
   }
 }
 
-/* Ambient grid */
+/* Custom Cursor active only when pointer:fine and reduced-motion:no-preference */
+html.kinetic-cursor-active,
+html.kinetic-cursor-active * {
+  cursor: none !important;
+}
+
+/* Ambient architectural grid */
 .bg-studio-grid {
   background-image:
-    linear-gradient(to right, rgba(255, 255, 255, 0.028) 1px, transparent 1px),
-    linear-gradient(to bottom, rgba(255, 255, 255, 0.028) 1px, transparent 1px);
-  background-size: 48px 48px;
+    linear-gradient(to right, rgba(244, 241, 234, 0.035) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(244, 241, 234, 0.035) 1px, transparent 1px);
+  background-size: 56px 56px;
 }
 
 html:not(.dark) .bg-studio-grid {
   background-image:
-    linear-gradient(to right, rgba(15, 23, 42, 0.045) 1px, transparent 1px),
-    linear-gradient(to bottom, rgba(15, 23, 42, 0.045) 1px, transparent 1px);
+    linear-gradient(to right, rgba(15, 23, 42, 0.055) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(15, 23, 42, 0.055) 1px, transparent 1px);
+}
+
+/* Pointer-tracked 21st.dev spotlight border card */
+.spotlight-card {
+  position: relative;
+}
+
+.spotlight-card::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  padding: 1px;
+  background: radial-gradient(
+    420px circle at var(--mx, -999px) var(--my, -999px),
+    var(--spot-color, rgba(255, 94, 43, 0.65)),
+    rgba(244, 241, 234, 0.14) 35%,
+    transparent 70%
+  );
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  pointer-events: none;
+  z-index: 2;
+}
+
+.spotlight-card::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: radial-gradient(
+    340px circle at var(--mx, -999px) var(--my, -999px),
+    var(--spot-fill, rgba(255, 94, 43, 0.08)),
+    transparent 65%
+  );
+  pointer-events: none;
+  z-index: 0;
 }
 
 .glass-panel {
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.055) 0%, rgba(255, 255, 255, 0.022) 100%);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.05) 0%, rgba(255, 255, 255, 0.018) 100%);
+  backdrop-filter: blur(22px);
+  -webkit-backdrop-filter: blur(22px);
   border: 1px solid rgba(255, 255, 255, 0.08);
   box-shadow:
-    0 20px 50px rgba(0, 0, 0, 0.45),
-    inset 0 1px 0 rgba(255, 255, 255, 0.09);
+    0 24px 60px rgba(0, 0, 0, 0.5),
+    inset 0 1px 0 rgba(255, 255, 255, 0.08);
 }
 
 html:not(.dark) .glass-panel {
-  background: rgba(255, 255, 255, 0.86);
-  border: 1px solid rgba(15, 23, 42, 0.09);
-  box-shadow: 0 18px 45px rgba(15, 23, 42, 0.08);
+  background: rgba(255, 255, 255, 0.88);
+  border: 1px solid rgba(15, 23, 42, 0.1);
+  box-shadow: 0 20px 50px rgba(15, 23, 42, 0.08);
 }
 
 .glass-card {
-  background: linear-gradient(180deg, rgba(24, 26, 38, 0.8) 0%, rgba(14, 15, 23, 0.9) 100%);
+  background: linear-gradient(180deg, rgba(22, 24, 34, 0.84) 0%, rgba(12, 13, 20, 0.94) 100%);
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
   border: 1px solid rgba(255, 255, 255, 0.08);
   box-shadow:
-    0 12px 32px rgba(0, 0, 0, 0.4),
+    0 12px 32px rgba(0, 0, 0, 0.42),
     inset 0 1px 0 rgba(255, 255, 255, 0.06);
 }
 
 html:not(.dark) .glass-card {
-  background: rgba(255, 255, 255, 0.94);
+  background: rgba(255, 255, 255, 0.95);
   border: 1px solid rgba(15, 23, 42, 0.09);
   box-shadow: 0 10px 28px rgba(15, 23, 42, 0.07);
 }
 
 .prism-gradient {
-  background: linear-gradient(135deg, #f97316 0%, #ec4899 52%, #8b5cf6 100%);
+  background: linear-gradient(135deg, #ff5e2b 0%, #ec4899 52%, #8b5cf6 100%);
 }
 
 .prism-text {
-  background: linear-gradient(135deg, #fb923c 0%, #f472b6 50%, #a78bfa 100%);
+  background: linear-gradient(135deg, #ff7a4d 0%, #f472b6 50%, #a78bfa 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
 }
@@ -92,7 +135,7 @@ html:not(.dark) .glass-card {
 }
 
 ::-webkit-scrollbar-thumb {
-  background: rgba(148, 163, 184, 0.25);
+  background: rgba(148, 163, 184, 0.28);
   border-radius: 9999px;
 }
 

@@ -1,23 +1,14 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
-import {
-  Zap,
-  Layers,
-  ShieldCheck,
-  Sparkles,
-  CheckCircle2,
-  AlertCircle,
-  Info,
-  Music,
-  Scissors,
-} from 'lucide-react';
+import { CheckCircle2, AlertCircle, Info } from 'lucide-react';
 import Header from './components/Header.jsx';
-import LinkInputCard from './components/LinkInputCard.jsx';
-import BatchDock from './components/BatchDock.jsx';
-import ReelCard from './components/ReelCard.jsx';
-import MediaTable from './components/MediaTable.jsx';
+import HomePortal from './components/HomePortal.jsx';
+import PlatformWorkspace from './components/PlatformWorkspace.jsx';
 import VideoModal from './components/VideoModal.jsx';
 import SettingsModal from './components/SettingsModal.jsx';
 import HistoryDrawer from './components/HistoryDrawer.jsx';
+import KineticCursor from './components/kinetic/KineticCursor.jsx';
+import HeroShaderCanvas from './components/kinetic/HeroShaderCanvas.jsx';
+import { PLATFORM_MAP } from './config/platformThemes.js';
 import {
   FORMAT_PRESETS,
   buildDownloadFilename,
@@ -50,8 +41,16 @@ function useLocalStorage(key, initialValue) {
   return [val, setStored];
 }
 
+function getPlatformFromHash() {
+  const hash = window.location.hash.replace(/^#\/?/, '').trim().toLowerCase();
+  if (hash && PLATFORM_MAP[hash]) return hash;
+  return null;
+}
+
 export default function App() {
-  const [rawInput, setRawInput] = useState('');
+  const [activePlatform, setActivePlatform] = useState(() => getPlatformFromHash());
+  const [inputsByPlatform, setInputsByPlatform] = useState({});
+
   const [theme, setTheme] = useLocalStorage('reeljet:theme', 'dark');
   const [concurrency, setConcurrency] = useLocalStorage('reeljet:concurrency', 5);
   const [filenameTemplate, setFilenameTemplate] = useLocalStorage('reeljet:template', 'title_id');
@@ -81,14 +80,32 @@ export default function App() {
   const abortRef = useRef(null);
   const toastTimerRef = useRef(null);
 
-  // Sync dark/light class on <html>
+  // Sync URL hash <-> activePlatform
+  useEffect(() => {
+    const onHashChange = () => {
+      setActivePlatform(getPlatformFromHash());
+    };
+    window.addEventListener('hashchange', onHashChange);
+    return () => window.removeEventListener('hashchange', onHashChange);
+  }, []);
+
+  const navigateToPlatform = useCallback((platformId) => {
+    const nextHash = platformId && PLATFORM_MAP[platformId] ? `#/${platformId}` : '#/';
+    if (window.location.hash !== nextHash) {
+      window.location.hash = nextHash;
+    }
+    setActivePlatform(platformId && PLATFORM_MAP[platformId] ? platformId : null);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }, []);
+
+  // Sync dark/light class
   useEffect(() => {
     const root = document.documentElement;
     if (theme === 'dark') root.classList.add('dark');
     else root.classList.remove('dark');
   }, [theme]);
 
-  // Fetch engine capabilities
+  // Fetch capabilities
   useEffect(() => {
     fetch('/api/health')
       .then((r) => r.json())
@@ -108,6 +125,26 @@ export default function App() {
       if (toastTimerRef.current) clearTimeout(toastTimerRef.current);
     };
   }, []);
+
+  const currentPlatformConfig = activePlatform ? PLATFORM_MAP[activePlatform] : null;
+  const currentRawInput = activePlatform ? inputsByPlatform[activePlatform] || '' : '';
+
+  const setCurrentRawInput = useCallback(
+    (nextText) => {
+      if (!activePlatform) return;
+      setInputsByPlatform((prev) => ({ ...prev, [activePlatform]: nextText }));
+    },
+    [activePlatform]
+  );
+
+  const handleQuickLaunchUrl = useCallback(
+    (targetPlatform, urlText) => {
+      setInputsByPlatform((prev) => ({ ...prev, [targetPlatform]: urlText }));
+      navigateToPlatform(targetPlatform);
+      showToast(`Opened ${PLATFORM_MAP[targetPlatform]?.name || 'Studio'} workspace.`, 'success');
+    },
+    [navigateToPlatform, showToast]
+  );
 
   const activePreset =
     FORMAT_PRESETS.find((p) => p.id === defaultPresetId) || FORMAT_PRESETS[0];
@@ -298,9 +335,7 @@ export default function App() {
   };
 
   const handleUpdateItemOptions = (id, patch) => {
-    setQueue((prev) =>
-      prev.map((q) => (q.id === id ? { ...q, ...patch } : q))
-    );
+    setQueue((prev) => prev.map((q) => (q.id === id ? { ...q, ...patch } : q)));
   };
 
   const handleRetryItem = (item) => {
@@ -379,7 +414,11 @@ export default function App() {
       setTimeout(() => URL.revokeObjectURL(blobUrl), 10000);
 
       for (const item of selectedItems) {
-        recordHistory(item.data, item.format || activePreset.format, item.quality || activePreset.quality);
+        recordHistory(
+          item.data,
+          item.format || activePreset.format,
+          item.quality || activePreset.quality
+        );
       }
 
       showToast(`Downloaded ${selectedItems.length} items as ZIP!`, 'success');
@@ -422,137 +461,90 @@ export default function App() {
     return true;
   });
 
-  return (
-    <div className="relative min-h-screen bg-slate-50 text-slate-900 dark:bg-[#07070b] dark:text-slate-100">
-      {/* Ambient studio backdrop */}
-      <div className="pointer-events-none fixed inset-0 overflow-hidden">
-        <div className="bg-studio-grid absolute inset-0 opacity-80" />
-        <div className="animate-pulse-slow absolute -left-32 -top-32 h-[420px] w-[420px] rounded-full bg-pink-600/15 blur-[130px]" />
-        <div className="animate-pulse-slow absolute right-[-120px] top-24 h-[460px] w-[460px] rounded-full bg-violet-600/15 blur-[140px]" />
-        <div className="absolute bottom-[-180px] left-1/3 h-[380px] w-[380px] rounded-full bg-orange-500/10 blur-[140px]" />
-      </div>
+  const shaderAccentA = currentPlatformConfig?.shaderA || '#ff5e2b';
+  const shaderAccentB = currentPlatformConfig?.shaderB || '#8b5cf6';
 
-      <Header
-        concurrency={concurrency}
-        hasSession={Boolean(sessionId?.trim())}
-        historyCount={history.length}
-        theme={theme}
-        capabilities={capabilities}
-        onToggleTheme={() => setTheme((t) => (t === 'dark' ? 'light' : 'dark'))}
-        onOpenHistory={() => setHistoryOpen(true)}
-        onOpenSettings={() => setSettingsOpen(true)}
+  return (
+    <div className="relative min-h-screen bg-[#f4f1ea] text-slate-900 dark:bg-[#07070a] dark:text-[#f4f1ea]">
+      {/* Custom 60-120fps Kinetic Morphing Cursor (Desktop Only) */}
+      <KineticCursor />
+
+      {/* 60fps Three.js GLSL FBM Plasma Canvas */}
+      <HeroShaderCanvas
+        accentA={shaderAccentA}
+        accentB={shaderAccentB}
+        isDark={theme === 'dark'}
       />
 
-      <main className="relative z-10 mx-auto flex max-w-7xl flex-col gap-7 px-4 pb-20 pt-8 sm:px-6 lg:px-8">
-        {/* Hero */}
-        <section className="mx-auto max-w-3xl text-center">
-          <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white/80 px-3.5 py-1.5 text-xs font-medium text-slate-700 backdrop-blur-md dark:border-white/10 dark:bg-white/[0.04] dark:text-slate-300">
-            <Sparkles className="h-3.5 w-3.5 text-amber-500 dark:text-amber-400" />
-            <span>YouTube • Instagram • TikTok • X • Reddit • 1,000+ Sites</span>
-          </div>
+      {/* Architectural Hairline Grid Overlay */}
+      <div className="bg-studio-grid pointer-events-none fixed inset-0 z-0 opacity-60" />
 
-          <h1 className="text-3xl font-extrabold tracking-tight text-slate-900 dark:text-white sm:text-5xl">
-            Download <span className="prism-text">Videos &amp; Audio</span> from anywhere, in batches.
-          </h1>
-          <p className="mx-auto mt-3.5 max-w-2xl text-sm leading-relaxed text-slate-600 dark:text-slate-400 sm:text-base">
-            Drop mixed links or playlists below. Extract streams in parallel, pick up to 4K MP4 or
-            lossless FLAC/MP3 audio, trim exact clips, grab subtitles, and bundle everything into one
-            organized ZIP.
-          </p>
-
-          <div className="mt-5 flex flex-wrap items-center justify-center gap-2.5 text-xs text-slate-700 dark:text-slate-300">
-            <span className="inline-flex items-center gap-1.5 rounded-xl border border-slate-200 bg-white/80 px-3 py-1.5 dark:border-white/[0.07] dark:bg-white/[0.03]">
-              <Zap className="h-3.5 w-3.5 text-amber-500" />
-              Up to 4K HD Muxing
-            </span>
-            <span className="inline-flex items-center gap-1.5 rounded-xl border border-slate-200 bg-white/80 px-3 py-1.5 dark:border-white/[0.07] dark:bg-white/[0.03]">
-              <Music className="h-3.5 w-3.5 text-pink-500" />
-              MP3 / M4A / FLAC / WAV
-            </span>
-            <span className="inline-flex items-center gap-1.5 rounded-xl border border-slate-200 bg-white/80 px-3 py-1.5 dark:border-white/[0.07] dark:bg-white/[0.03]">
-              <Scissors className="h-3.5 w-3.5 text-cyan-500" />
-              Clip Trimmer &amp; .SRT
-            </span>
-            <span className="inline-flex items-center gap-1.5 rounded-xl border border-slate-200 bg-white/80 px-3 py-1.5 dark:border-white/[0.07] dark:bg-white/[0.03]">
-              <Layers className="h-3.5 w-3.5 text-violet-500" />
-              Folder-Grouped ZIP
-            </span>
-            <span className="inline-flex items-center gap-1.5 rounded-xl border border-slate-200 bg-white/80 px-3 py-1.5 dark:border-white/[0.07] dark:bg-white/[0.03]">
-              <ShieldCheck className="h-3.5 w-3.5 text-emerald-500" />
-              100% Local &amp; Private
-            </span>
-          </div>
-        </section>
-
-        {/* Batch Link Input */}
-        <LinkInputCard
-          rawInput={rawInput}
-          onChangeInput={setRawInput}
+      <div className="relative z-10">
+        <Header
+          activePlatform={activePlatform}
+          onSelectPlatform={navigateToPlatform}
           concurrency={concurrency}
-          onChangeConcurrency={setConcurrency}
-          defaultPresetId={defaultPresetId}
-          onChangePresetId={handleChangePresetId}
-          isExtracting={isExtracting}
-          onExtract={(items) => runBatchExtraction(items)}
-          onToast={showToast}
+          hasSession={Boolean(sessionId?.trim())}
+          historyCount={history.length}
+          theme={theme}
+          capabilities={capabilities}
+          onToggleTheme={() => setTheme((t) => (t === 'dark' ? 'light' : 'dark'))}
+          onOpenHistory={() => setHistoryOpen(true)}
+          onOpenSettings={() => setSettingsOpen(true)}
         />
 
-        {/* Sticky Batch Control Dock */}
-        <BatchDock
-          items={queue}
-          selectedIds={selectedIds}
-          filter={filter}
-          viewMode={viewMode}
-          groupByPlatform={groupByPlatform}
-          onChangeFilter={setFilter}
-          onChangeViewMode={setViewMode}
-          onToggleGroupByPlatform={() => setGroupByPlatform((v) => !v)}
-          onToggleSelectAll={handleToggleSelectAll}
-          onRetryFailed={handleRetryFailed}
-          onClearAll={handleClearAll}
-          onDownloadZip={handleDownloadZip}
-          onDownloadIndividualBatch={handleDownloadIndividualBatch}
-          zipState={zipState}
-          elapsedMs={elapsedMs}
-        />
-
-        {/* Extracted Results (Grid or Compact Table) */}
-        {filteredQueue.length > 0 &&
-          (viewMode === 'table' ? (
-            <MediaTable
-              items={filteredQueue}
-              selectedIds={selectedIds}
-              filenameTemplate={filenameTemplate}
-              sessionId={sessionId}
-              onToggleSelect={handleToggleSelect}
-              onUpdateItemOptions={handleUpdateItemOptions}
-              onPreview={setPreviewItem}
-              onRetry={handleRetryItem}
-              onRecordHistory={recordHistory}
-              onToast={showToast}
-            />
-          ) : (
-            <section className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-              {filteredQueue.map((item, idx) => (
-                <ReelCard
-                  key={item.id}
-                  item={item}
-                  index={idx}
-                  selected={selectedIds.has(item.id)}
-                  filenameTemplate={filenameTemplate}
-                  sessionId={sessionId}
-                  onToggleSelect={handleToggleSelect}
-                  onUpdateItemOptions={handleUpdateItemOptions}
-                  onPreview={setPreviewItem}
-                  onRetry={handleRetryItem}
-                  onOpenSettings={() => setSettingsOpen(true)}
-                  onRecordHistory={recordHistory}
-                  onToast={showToast}
-                />
-              ))}
-            </section>
-          ))}
-      </main>
+        {!currentPlatformConfig ? (
+          <HomePortal
+            onSelectPlatform={navigateToPlatform}
+            onQuickLaunchUrl={handleQuickLaunchUrl}
+            capabilities={capabilities}
+          />
+        ) : (
+          <PlatformWorkspace
+            platformConfig={currentPlatformConfig}
+            onBackHome={() => navigateToPlatform(null)}
+            onSwitchPlatform={(targetId) => {
+              const txt = currentRawInput;
+              setInputsByPlatform((prev) => ({ ...prev, [targetId]: txt }));
+              navigateToPlatform(targetId);
+            }}
+            rawInput={currentRawInput}
+            onChangeInput={setCurrentRawInput}
+            concurrency={concurrency}
+            onChangeConcurrency={setConcurrency}
+            defaultPresetId={defaultPresetId}
+            onChangePresetId={handleChangePresetId}
+            isExtracting={isExtracting}
+            onExtract={(items) => runBatchExtraction(items)}
+            queue={queue}
+            filteredQueue={filteredQueue}
+            selectedIds={selectedIds}
+            filter={filter}
+            viewMode={viewMode}
+            groupByPlatform={groupByPlatform}
+            onChangeFilter={setFilter}
+            onChangeViewMode={setViewMode}
+            onToggleGroupByPlatform={() => setGroupByPlatform((v) => !v)}
+            onToggleSelect={handleToggleSelect}
+            onToggleSelectAll={handleToggleSelectAll}
+            onUpdateItemOptions={handleUpdateItemOptions}
+            onRetryItem={handleRetryItem}
+            onRetryFailed={handleRetryFailed}
+            onClearAll={handleClearAll}
+            onDownloadZip={handleDownloadZip}
+            onDownloadIndividualBatch={handleDownloadIndividualBatch}
+            zipState={zipState}
+            elapsedMs={elapsedMs}
+            filenameTemplate={filenameTemplate}
+            sessionId={sessionId}
+            hasSession={Boolean(sessionId?.trim())}
+            onPreview={setPreviewItem}
+            onOpenSettings={() => setSettingsOpen(true)}
+            onRecordHistory={recordHistory}
+            onToast={showToast}
+          />
+        )}
+      </div>
 
       {/* Modals & Drawers */}
       <VideoModal
@@ -582,9 +574,14 @@ export default function App() {
         history={history}
         onClose={() => setHistoryOpen(false)}
         onRequeue={(url) => {
-          setRawInput((prev) => (prev.trim() ? `${prev.trim()}\n${url}` : url));
+          const target = activePlatform || 'universal';
+          setInputsByPlatform((prev) => ({
+            ...prev,
+            [target]: prev[target]?.trim() ? `${prev[target].trim()}\n${url}` : url,
+          }));
+          if (!activePlatform) navigateToPlatform('universal');
           setHistoryOpen(false);
-          showToast('Added URL back to Batch Studio.', 'success');
+          showToast('Added URL back to Studio.', 'success');
         }}
         onClearHistory={() => {
           setHistory([]);
@@ -597,7 +594,7 @@ export default function App() {
         <div className="fixed bottom-5 right-5 z-50 flex max-w-sm items-center gap-2.5 rounded-2xl border border-slate-200 bg-white/95 px-4 py-3 text-xs font-medium text-slate-900 shadow-2xl backdrop-blur-xl dark:border-white/15 dark:bg-[#12141e]/95 dark:text-white">
           {toast.type === 'success' && <CheckCircle2 className="h-4 w-4 shrink-0 text-emerald-500" />}
           {toast.type === 'error' && <AlertCircle className="h-4 w-4 shrink-0 text-rose-500" />}
-          {toast.type === 'info' && <Info className="h-4 w-4 shrink-0 text-pink-500" />}
+          {toast.type === 'info' && <Info className="h-4 w-4 shrink-0 text-[#ff5e2b]" />}
           <span>{toast.message}</span>
         </div>
       )}
