@@ -37,7 +37,7 @@ app.get('/api/health', async (_req, res) => {
   const capabilities = await getEngineCapabilities();
   res.json({
     ok: true,
-    service: 'reeljet-studio-api',
+    service: 'streamvault-api',
     timestamp: Date.now(),
     capabilities,
   });
@@ -481,7 +481,7 @@ app.post('/api/download-zip', async (req, res) => {
 
   const stamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19);
   res.setHeader('Content-Type', 'application/zip');
-  res.setHeader('Content-Disposition', `attachment; filename="reeljet-batch-${stamp}.zip"`);
+  res.setHeader('Content-Disposition', `attachment; filename="streamvault-batch-${stamp}.zip"`);
   res.setHeader('X-Content-Type-Options', 'nosniff');
 
   const archive = archiver('zip', {
@@ -639,5 +639,5 @@ if (fs.existsSync(DIST_DIR)) {
 }
 
 app.listen(PORT, () => {
-  console.log(`\n🚀 ReelJet Studio server listening on http://localhost:${PORT}\n`);
+  console.log(`\n🚀 StreamVault server listening on http://localhost:${PORT}\n`);
 });

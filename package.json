@@ -1,7 +1,7 @@
 {
-  "name": "insta-reel-turbo",
-  "version": "1.0.0",
-  "description": "High-speed batch Instagram Reel downloader with parallel extraction, live SSE progress, instant video preview, and wire-speed ZIP streaming.",
+  "name": "streamvault",
+  "version": "2.0.0",
+  "description": "Universal high-speed multi-platform video and audio batch downloader for YouTube, Instagram, X, TikTok, Facebook, Reddit, and 1,000+ sites.",
   "type": "module",
   "main": "server/index.js",
   "scripts": {

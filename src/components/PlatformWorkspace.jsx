@@ -56,13 +56,17 @@ export default function PlatformWorkspace({
       const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
       if (reduced) return;
 
-      gsap.from('.ws-reveal', {
-        y: 22,
-        opacity: 0,
-        duration: 0.55,
-        stagger: 0.08,
-        ease: 'power3.out',
-      });
+      gsap.fromTo(
+        '.ws-reveal',
+        { y: 18 },
+        {
+          y: 0,
+          duration: 0.45,
+          stagger: 0.06,
+          ease: 'power3.out',
+          clearProps: 'transform',
+        }
+      );
     },
     { scope: wsRef, dependencies: [platformConfig.id] }
   );
@@ -209,3 +213,4 @@ export default function PlatformWorkspace({
     </div>
   );
 }
+

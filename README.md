@@ -1,7 +1,7 @@
 <div align="center">
 
 <!-- Hero Banner -->
-<img src="https://capsule-render.vercel.app/api?type=waving&color=0:f97316,50:ec4899,100:8b5cf6&height=215&section=header&text=ReelJet%20Studio&fontSize=60&fontColor=ffffff&fontAlignY=38&desc=Universal%20High-Speed%20Video%20%26%20Audio%20Batch%20Downloader&descSize=18&descAlignY=62&animation=fadeIn" alt="ReelJet Studio Banner" width="100%" />
+<img src="https://capsule-render.vercel.app/api?type=waving&color=0:ff5e2b,50:ec4899,100:8b5cf6&height=215&section=header&text=StreamVault&fontSize=62&fontColor=ffffff&fontAlignY=38&desc=Universal%20High-Speed%20Video%20%26%20Audio%20Batch%20Downloader&descSize=18&descAlignY=62&animation=fadeIn" alt="StreamVault Banner" width="100%" />
 
 <p align="center">
   <a href="https://nodejs.org/"><img src="https://img.shields.io/badge/Node.js-18%2B-339933?style=for-the-badge&logo=nodedotjs&logoColor=white" alt="Node.js" /></a>
@@ -129,8 +129,8 @@ Everything runs on **[http://localhost:3001](http://localhost:3001)**.
 ### 4. Deploy Anywhere with Docker
 
 ```bash
-docker build -t reeljet-studio .
-docker run -p 3001:3001 reeljet-studio
+docker build -t streamvault .
+docker run -p 3001:3001 streamvault
 ```
 
 ### 5. Run Tests

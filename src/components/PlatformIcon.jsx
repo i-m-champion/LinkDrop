@@ -45,3 +45,4 @@ export default function PlatformIcon({ platformId, className = 'h-6 w-6' }) {
       return <Globe className={className} />;
   }
 }
+

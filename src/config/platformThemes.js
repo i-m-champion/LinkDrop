@@ -149,3 +149,4 @@ export const PLATFORM_LIST = [
 ];
 
 export const PLATFORM_MAP = Object.fromEntries(PLATFORM_LIST.map((p) => [p.id, p]));
+

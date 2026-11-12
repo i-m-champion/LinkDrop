@@ -407,7 +407,7 @@ export default function App() {
       const stamp = new Date().toISOString().slice(0, 10);
       const a = document.createElement('a');
       a.href = blobUrl;
-      a.download = `reeljet-${selectedItems.length}-files-${stamp}.zip`;
+      a.download = `streamvault-${selectedItems.length}-files-${stamp}.zip`;
       document.body.appendChild(a);
       a.click();
       a.remove();

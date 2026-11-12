@@ -28,7 +28,7 @@ export default function Header({
   const engineReady = capabilities?.ytDlpAvailable && capabilities?.ffmpegAvailable;
 
   return (
-    <header className="sticky top-0 z-40 border-b border-slate-300/70 bg-[#f4f1ea]/80 backdrop-blur-xl dark:border-white/[0.06] dark:bg-[#07070a]/80">
+    <header className="sticky top-0 z-40 border-b border-slate-300/70 bg-[#f4f1ea]/85 backdrop-blur-xl dark:border-white/[0.06] dark:bg-[#07070a]/85">
       <div className="mx-auto flex max-w-7xl items-center justify-between gap-3 px-4 py-3 sm:px-6 lg:px-8">
         {/* Brand (click returns Home) */}
         <button
@@ -48,50 +48,53 @@ export default function Header({
           <div>
             <div className="flex items-center gap-2">
               <span className="font-display text-lg font-extrabold tracking-tight text-slate-900 dark:text-white">
-                Reel<span className="prism-text">Jet</span>
+                Stream<span className="prism-text">Vault</span>
               </span>
               <span className="rounded-full border border-[#ff5e2b]/35 bg-[#ff5e2b]/10 px-2 py-0.5 font-mono text-[10px] font-bold uppercase tracking-wider text-[#ff5e2b]">
-                Kinetic
+                Pro
               </span>
             </div>
             <p className="hidden text-[11px] text-slate-500 dark:text-slate-400 sm:block">
-              Multi-Platform Video &amp; Audio Studio
+              Universal Video &amp; Audio Downloader
             </p>
           </div>
         </button>
 
-        {/* Quick Platform Switcher Pill Bar when inside a platform workspace */}
-        {activePlatform && (
-          <nav className="hidden items-center gap-1 rounded-2xl border border-slate-300/70 bg-white/70 p-1 backdrop-blur-md dark:border-white/[0.08] dark:bg-white/[0.03] xl:flex">
-            <button
-              type="button"
-              onClick={() => onSelectPlatform(null)}
-              data-cursor="HOME"
-              className="inline-flex items-center gap-1 rounded-xl px-2.5 py-1.5 text-xs font-semibold text-slate-600 transition hover:bg-slate-200/70 dark:text-slate-300 dark:hover:bg-white/[0.08]"
-            >
-              <Home className="h-3.5 w-3.5" />
-            </button>
-            {PLATFORM_LIST.map((plat) => {
-              const isCurrent = plat.id === activePlatform;
-              return (
-                <button
-                  key={plat.id}
-                  type="button"
-                  onClick={() => onSelectPlatform(plat.id)}
-                  data-cursor={plat.cursorLabel}
-                  className={`inline-flex items-center gap-1.5 rounded-xl px-2.5 py-1.5 text-xs font-semibold transition ${
-                    isCurrent
-                      ? `bg-gradient-to-r ${plat.gradientClass} text-white shadow-sm`
-                      : 'text-slate-600 hover:bg-slate-200/70 dark:text-slate-300 dark:hover:bg-white/[0.08]'
-                  }`}
-                >
-                  <PlatformIcon platformId={plat.id} className="h-3.5 w-3.5" />
-                  <span>{plat.name.split(' ')[0]}</span>
-                </button>
-              );
-            })}
-          </nav>
-        )}
+        {/* Always-accessible Platform Switcher on Desktop */}
+        <nav className="hidden items-center gap-1 rounded-2xl border border-slate-300/70 bg-white/75 p-1 backdrop-blur-md dark:border-white/[0.08] dark:bg-white/[0.03] lg:flex">
+          <button
+            type="button"
+            onClick={() => onSelectPlatform(null)}
+            data-cursor="HOME"
+            className={`inline-flex items-center gap-1.5 rounded-xl px-2.5 py-1.5 text-xs font-semibold transition ${
+              !activePlatform
+                ? 'bg-slate-900 text-white dark:bg-white dark:text-slate-900'
+                : 'text-slate-600 hover:bg-slate-200/70 dark:text-slate-300 dark:hover:bg-white/[0.08]'
+            }`}
+          >
+            <Home className="h-3.5 w-3.5" />
+            <span>Home</span>
+          </button>
+          {PLATFORM_LIST.map((plat) => {
+            const isCurrent = plat.id === activePlatform;
+            return (
+              <button
+                key={plat.id}
+                type="button"
+                onClick={() => onSelectPlatform(plat.id)}
+                data-cursor={plat.cursorLabel}
+                className={`inline-flex items-center gap-1.5 rounded-xl px-2.5 py-1.5 text-xs font-semibold transition ${
+                  isCurrent
+                    ? `bg-gradient-to-r ${plat.gradientClass} text-white shadow-sm`
+                    : 'text-slate-600 hover:bg-slate-200/70 dark:text-slate-300 dark:hover:bg-white/[0.08]'
+                }`}
+              >
+                <PlatformIcon platformId={plat.id} className="h-3.5 w-3.5" />
+                <span>{plat.id === 'universal' ? 'All' : plat.name.split(' ')[0]}</span>
+              </button>
+            );
+          })}
+        </nav>
 
         {/* Right Controls */}
         <div className="flex items-center gap-2">
@@ -100,14 +103,12 @@ export default function Header({
               title={
                 engineReady
                   ? `yt-dlp ${capabilities.ytDlpVersion} + ffmpeg ${capabilities.ffmpegVersion}`
-                  : 'Fast Instagram SSR engine active'
+                  : 'Fast extraction engine active'
               }
-              className="hidden items-center gap-2 rounded-full border border-slate-300/70 bg-white/70 px-3 py-1.5 text-xs text-slate-700 dark:border-white/[0.08] dark:bg-white/[0.03] dark:text-slate-300 lg:flex"
+              className="hidden items-center gap-2 rounded-full border border-slate-300/70 bg-white/70 px-3 py-1.5 text-xs text-slate-700 dark:border-white/[0.08] dark:bg-white/[0.03] dark:text-slate-300 xl:flex"
             >
               <Cpu className={`h-3.5 w-3.5 ${engineReady ? 'text-emerald-500' : 'text-amber-500'}`} />
-              <span className="font-mono text-[11px]">
-                {engineReady ? 'yt-dlp + ffmpeg' : 'Fast SSR'} • {concurrency}x
-              </span>
+              <span className="font-mono text-[11px]">{concurrency}x</span>
             </div>
           )}
 
@@ -170,6 +171,40 @@ export default function Header({
             <span className="hidden md:inline">GitHub</span>
           </a>
         </div>
+      </div>
+
+      {/* Mobile / Tablet Scrollable Platform Bar */}
+      <div className="flex items-center gap-1.5 overflow-x-auto border-t border-slate-300/50 px-4 py-2 dark:border-white/[0.05] lg:hidden">
+        <button
+          type="button"
+          onClick={() => onSelectPlatform(null)}
+          className={`inline-flex shrink-0 items-center gap-1 rounded-xl px-2.5 py-1 text-xs font-semibold ${
+            !activePlatform
+              ? 'bg-slate-900 text-white dark:bg-white dark:text-slate-900'
+              : 'bg-white/60 text-slate-700 dark:bg-white/[0.05] dark:text-slate-300'
+          }`}
+        >
+          <Home className="h-3.5 w-3.5" />
+          <span>Home</span>
+        </button>
+        {PLATFORM_LIST.map((plat) => {
+          const isCurrent = plat.id === activePlatform;
+          return (
+            <button
+              key={plat.id}
+              type="button"
+              onClick={() => onSelectPlatform(plat.id)}
+              className={`inline-flex shrink-0 items-center gap-1.5 rounded-xl px-2.5 py-1 text-xs font-semibold ${
+                isCurrent
+                  ? `bg-gradient-to-r ${plat.gradientClass} text-white`
+                  : 'bg-white/60 text-slate-700 dark:bg-white/[0.05] dark:text-slate-300'
+              }`}
+            >
+              <PlatformIcon platformId={plat.id} className="h-3.5 w-3.5" />
+              <span>{plat.id === 'universal' ? 'All Sites' : plat.name.split(' ')[0]}</span>
+            </button>
+          );
+        })}
       </div>
     </header>
   );
