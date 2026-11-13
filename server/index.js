@@ -21,6 +21,7 @@ import {
   getPreparedFile,
   isAudioFormat,
   prepareMediaFile,
+  safeContentDisposition,
 } from './downloader.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -197,7 +198,7 @@ app.get('/api/thumb/:id', async (req, res) => {
     if (download === '1' || download === 'true') {
       const ext = contentType.includes('webp') ? 'webp' : contentType.includes('png') ? 'png' : 'jpg';
       const thumbName = formatMediaFilename(media, 'title_id', 0, ext, false);
-      res.setHeader('Content-Disposition', `attachment; filename="${thumbName}"`);
+      res.setHeader('Content-Disposition', safeContentDisposition(thumbName));
     }
 
     Readable.fromWeb(upstream.body).pipe(res);
@@ -225,7 +226,7 @@ app.get('/api/subtitles/:id', async (req, res) => {
     const { content, ext } = await extractSubtitles(media, String(lang));
     const subName = formatMediaFilename(media, 'title_id', 0, ext, false);
     res.setHeader('Content-Type', getMimeType(ext));
-    res.setHeader('Content-Disposition', `attachment; filename="${subName}"`);
+    res.setHeader('Content-Disposition', safeContentDisposition(subName));
     res.send(content);
   } catch (err) {
     res.status(500).json({ error: err?.message || 'Failed to download subtitles.' });
@@ -273,41 +274,56 @@ app.get('/api/stream/:id', async (req, res) => {
       };
       if (req.headers.range) headers.Range = req.headers.range;
 
-      let upstream = await fetch(targetUrl, { headers });
-      if (upstream.status === 403 || upstream.status === 410) {
-        media = await extractMedia(media.url, { sessionId: String(sessionId), bypassCache: true });
-        upstream = await fetch(media.directProgressiveUrl || media.videoUrl, { headers });
+      let upstream = null;
+      try {
+        upstream = await fetch(targetUrl, { headers });
+        if (upstream.status === 403 || upstream.status === 410) {
+          media = await extractMedia(media.url, { sessionId: String(sessionId), bypassCache: true });
+          upstream = await fetch(media.directProgressiveUrl || media.videoUrl, { headers });
+        }
+      } catch (fetchErr) {
+        console.warn('Direct stream fetch error:', fetchErr?.message);
       }
 
-      if (!upstream.ok || !upstream.body) {
-        return res.status(upstream.status || 502).json({ error: 'Upstream media unavailable' });
+      if (upstream && upstream.ok && upstream.body) {
+        res.status(upstream.status);
+        res.setHeader('Content-Type', upstream.headers.get('content-type') || 'video/mp4');
+        res.setHeader('Accept-Ranges', 'bytes');
+        const len = upstream.headers.get('content-length');
+        if (len) res.setHeader('Content-Length', len);
+        const range = upstream.headers.get('content-range');
+        if (range) res.setHeader('Content-Range', range);
+
+        if (!isPreview) {
+          const safeName =
+            typeof filename === 'string' && filename.trim()
+              ? filename.replace(/[<>:"/\\|?*\x00-\x1f]/g, '_')
+              : formatMediaFilename(media, 'title_id', 0, 'mp4', false);
+          res.setHeader('Content-Disposition', safeContentDisposition(safeName));
+        }
+
+        const nodeStream = Readable.fromWeb(upstream.body);
+        res.on('close', () => {
+          if (!res.writableFinished) nodeStream.destroy();
+        });
+        nodeStream.on('error', (err) => {
+          console.warn('nodeStream transfer error:', err?.message);
+          if (!res.headersSent) res.status(502).end();
+          else res.destroy();
+        });
+        nodeStream.pipe(res);
+        return;
       }
 
-      res.status(upstream.status);
-      res.setHeader('Content-Type', upstream.headers.get('content-type') || 'video/mp4');
-      res.setHeader('Accept-Ranges', 'bytes');
-      const len = upstream.headers.get('content-length');
-      if (len) res.setHeader('Content-Length', len);
-      const range = upstream.headers.get('content-range');
-      if (range) res.setHeader('Content-Range', range);
-
-      if (!isPreview) {
-        const safeName =
-          typeof filename === 'string' && filename.trim()
-            ? filename.replace(/[<>:"/\\|?*\x00-\x1f]/g, '_')
-            : formatMediaFilename(media, 'title_id', 0, 'mp4', false);
-        res.setHeader('Content-Disposition', `attachment; filename="${safeName}"`);
+      // If preview mode and upstream failed, return error
+      if (isPreview) {
+        return res.status(upstream?.status || 502).json({ error: 'Upstream media unavailable' });
       }
 
-      const nodeStream = Readable.fromWeb(upstream.body);
-      res.on('close', () => {
-        if (!res.writableFinished) nodeStream.destroy();
-      });
-      nodeStream.pipe(res);
-      return;
+      console.warn('Direct progressive stream unavailable, falling back to prepareMediaFile for:', media.id);
     }
 
-    // Needs muxing / transcoding / trimming -> prepare via yt-dlp + ffmpeg
+    // Needs muxing / transcoding / trimming or direct stream fallback -> prepare via yt-dlp + ffmpeg
     const prepared = await prepareMediaFile(media, {
       ...opts,
       template: 'title_id',
@@ -320,7 +336,7 @@ app.get('/api/stream/:id', async (req, res) => {
 
     res.setHeader('Content-Type', prepared.mimeType);
     res.setHeader('Content-Length', prepared.size);
-    res.setHeader('Content-Disposition', `attachment; filename="${finalName}"`);
+    res.setHeader('Content-Disposition', safeContentDisposition(finalName));
 
     const stream = fs.createReadStream(prepared.filePath);
     res.on('close', () => {
@@ -394,6 +410,7 @@ app.get('/api/prepare/:id', async (req, res) => {
         download: '1',
         filename: targetName,
       });
+      if (media.url) qs.set('url', media.url);
       if (sessionId) qs.set('sessionId', String(sessionId));
       sendEvent('ready', {
         downloadUrl: `/api/stream/${encodeURIComponent(media.id)}?${qs.toString()}`,
@@ -440,7 +457,7 @@ app.get('/api/file/:token', (req, res) => {
 
   res.setHeader('Content-Type', entry.mimeType);
   res.setHeader('Content-Length', entry.size);
-  res.setHeader('Content-Disposition', `attachment; filename="${finalName}"`);
+  res.setHeader('Content-Disposition', safeContentDisposition(finalName));
 
   const stream = fs.createReadStream(entry.filePath);
   res.on('close', () => {

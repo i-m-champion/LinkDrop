@@ -9,11 +9,12 @@ export PATH="/opt/homebrew/bin:/usr/local/bin:$PATH"
 echo ""
 echo "⚡ Starting LinkDrop..."
 
-# If LinkDrop is already running on port 3001, just open it in the browser
-if command -v lsof >/dev/null 2>&1 && lsof -iTCP:3001 -sTCP:LISTEN -t >/dev/null 2>&1; then
-  echo "✅ LinkDrop is already running on http://localhost:3001"
-  open "http://localhost:3001"
-  exit 0
+# If a previous LinkDrop instance is running on port 3001, stop it so updates take effect
+OLD_PID=$(lsof -iTCP:3001 -sTCP:LISTEN -t 2>/dev/null || true)
+if [ -n "$OLD_PID" ]; then
+  echo "🔄 Restarting LinkDrop server (stopping PID $OLD_PID to apply latest fixes)..."
+  kill -9 $OLD_PID 2>/dev/null || true
+  sleep 1
 fi
 
 # Build production UI automatically if dist/ doesn't exist yet

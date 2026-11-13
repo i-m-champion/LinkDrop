@@ -37,7 +37,37 @@ export function stableItemId(canonicalUrl) {
  * Normalize a single matched URL into canonical URL, unique key, shortcode (if IG), and playlist flag.
  */
 export function normalizeMediaUrl(rawUrl) {
-  let withProto = rawUrl.trim().replace(/[),.;!?]+$/, '');
+  if (!rawUrl || typeof rawUrl !== 'string') return null;
+  let trimmed = rawUrl.trim().replace(/[),.;!?]+$/, '');
+
+  // Support YouTube ID with yt_ prefix
+  if (/^yt_[A-Za-z0-9_-]{6,25}$/.test(trimmed)) {
+    const vid = trimmed.slice(3);
+    const canonical = `https://www.youtube.com/watch?v=${vid}`;
+    return {
+      id: trimmed,
+      videoId: vid,
+      platform: 'youtube',
+      url: canonical,
+      originalUrl: canonical,
+      isPlaylist: false,
+    };
+  }
+
+  // Support direct Instagram shortcode (e.g. DQRZIlnj03i)
+  if (/^[A-Za-z0-9_-]{9,35}$/.test(trimmed)) {
+    const canonical = `https://www.instagram.com/reel/${trimmed}/`;
+    return {
+      id: trimmed,
+      shortcode: trimmed,
+      platform: 'instagram',
+      url: canonical,
+      originalUrl: canonical,
+      isPlaylist: false,
+    };
+  }
+
+  let withProto = trimmed;
   if (!/^https?:\/\//i.test(withProto)) {
     withProto = `https://${withProto}`;
   }

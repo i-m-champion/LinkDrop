@@ -3,6 +3,7 @@ import crypto from 'node:crypto';
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
+import contentDisposition from 'content-disposition';
 import { FFMPEG_BIN, YTDLP_BIN, getEngineCapabilities } from './binaries.js';
 import { formatMediaFilename, parseTimeToSeconds } from './platforms.js';
 
@@ -49,6 +50,35 @@ export function getMimeType(ext = 'mp4') {
     default:
       return 'video/mp4';
   }
+}
+
+/**
+ * Generate an RFC 6266 / RFC 5987 compliant Content-Disposition header value
+ * that safely preserves emojis, unicode quotes, and non-Latin1 characters across
+ * all modern browsers (via filename*=UTF-8'') while providing a clean, valid
+ * ASCII fallback for legacy clients (preventing Node.js ERR_INVALID_CHAR header crashes).
+ */
+export function safeContentDisposition(filename, type = 'attachment') {
+  const raw = String(filename || 'download')
+    .replace(/[\x00-\x1f\x7f]/g, '')
+    .trim();
+  const lastDot = raw.lastIndexOf('.');
+  const ext = lastDot > 0 ? raw.slice(lastDot + 1).replace(/[^a-zA-Z0-9]/g, '') : 'mp4';
+  const nameWithoutExt = lastDot > 0 ? raw.slice(0, lastDot) : raw;
+
+  let asciiBase = nameWithoutExt
+    .replace(/[\u201C\u201D]/g, '')
+    .replace(/[\u2018\u2019]/g, '')
+    .replace(/[^\x20-\x7E]/g, '')
+    .replace(/[<>:"/\\|?*\x00-\x1f]/g, '_')
+    .replace(/\s+/g, '_')
+    .replace(/_+/g, '_')
+    .replace(/^[_.-]+|[_.-]+$/g, '');
+
+  if (!asciiBase) asciiBase = 'media';
+  const fallback = `${asciiBase}.${ext || 'mp4'}`;
+
+  return contentDisposition(raw || fallback, { type, fallback });
 }
 
 /**
@@ -138,34 +168,48 @@ export async function prepareMediaFile(
   const outputTemplate = path.join(jobDir, 'output.%(ext)s');
 
   try {
+    let usedFfmpeg = false;
     // Fast direct ffmpeg path when we already have a progressive URL (e.g. Instagram Reel -> MP3 or Trimmed)
     if (media.directProgressiveUrl && (media.platform === 'instagram' || !caps.ytDlpAvailable)) {
-      if (!caps.ffmpegAvailable) {
-        throw new Error('ffmpeg is required for audio conversion or clip trimming.');
-      }
-      onProgress?.({ stage: isAudioFormat(ext) ? 'Extracting audio...' : 'Processing clip...', percent: 25 });
-
-      const outPath = path.join(jobDir, `output.${ext}`);
-      const ffArgs = ['-y'];
-      if (startSec !== null) ffArgs.push('-ss', String(startSec));
-      if (endSec !== null) ffArgs.push('-to', String(endSec));
-      ffArgs.push('-i', media.directProgressiveUrl);
-
-      if (ext === 'mp3') {
-        ffArgs.push('-vn', '-c:a', 'libmp3lame', '-b:a', '320k', outPath);
-      } else if (ext === 'm4a') {
-        ffArgs.push('-vn', '-c:a', 'aac', '-b:a', '256k', outPath);
-      } else if (ext === 'flac') {
-        ffArgs.push('-vn', '-c:a', 'flac', outPath);
-      } else if (ext === 'wav') {
-        ffArgs.push('-vn', '-c:a', 'pcm_s16le', outPath);
-      } else {
-        ffArgs.push('-c:v', 'libx264', '-preset', 'veryfast', '-c:a', 'aac', '-movflags', '+faststart', outPath);
+      if (!caps.ffmpegAvailable && !caps.ytDlpAvailable) {
+        throw new Error('ffmpeg or yt-dlp is required for media processing.');
       }
 
-      await runCommandWithProgress(FFMPEG_BIN, ffArgs);
-      onProgress?.({ stage: 'Finalizing...', percent: 95 });
-    } else {
+      if (caps.ffmpegAvailable) {
+        onProgress?.({ stage: isAudioFormat(ext) ? 'Extracting audio...' : 'Processing clip...', percent: 25 });
+
+        const outPath = path.join(jobDir, `output.${ext}`);
+        const ffArgs = ['-y'];
+        if (startSec !== null) ffArgs.push('-ss', String(startSec));
+        if (endSec !== null) ffArgs.push('-to', String(endSec));
+        ffArgs.push('-i', media.directProgressiveUrl);
+
+        if (ext === 'mp3') {
+          ffArgs.push('-vn', '-c:a', 'libmp3lame', '-b:a', '320k', outPath);
+        } else if (ext === 'm4a') {
+          ffArgs.push('-vn', '-c:a', 'aac', '-b:a', '256k', outPath);
+        } else if (ext === 'flac') {
+          ffArgs.push('-vn', '-c:a', 'flac', outPath);
+        } else if (ext === 'wav') {
+          ffArgs.push('-vn', '-c:a', 'pcm_s16le', outPath);
+        } else {
+          ffArgs.push('-c:v', 'libx264', '-preset', 'veryfast', '-c:a', 'aac', '-movflags', '+faststart', outPath);
+        }
+
+        try {
+          await runCommandWithProgress(FFMPEG_BIN, ffArgs);
+          onProgress?.({ stage: 'Finalizing...', percent: 95 });
+          usedFfmpeg = true;
+        } catch (ffErr) {
+          if (!caps.ytDlpAvailable || !media.url) {
+            throw ffErr;
+          }
+          console.warn('Direct progressive ffmpeg failed, falling back to yt-dlp:', ffErr.message);
+        }
+      }
+    }
+
+    if (!usedFfmpeg) {
       if (!caps.ytDlpAvailable) {
         throw new Error('yt-dlp is required on the server for this operation.');
       }
